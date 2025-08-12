@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Python Selenium script
         id: run_script
-        run: python check_hyrox_page.py # Use the new script name
+        run: python sg_hyrox_checker.py # Use the new script name
 
       - name: Commit and push status file
         if: steps.run_script.outputs.change_detected == 'true'
