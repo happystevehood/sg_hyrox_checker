@@ -59,7 +59,7 @@ jobs:
           secure: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: 'Hyrox Update: New Category Available!'
+          subject: 'SG Hyrox Update: New Category Available!'
           to: happychildhood@yahoo.com # <-- IMPORTANT: Change this
           from: SG Hyrox Monitor Bot happychildhood@yahoo.com # <-- IMPORTANT: Change this
           body: ${{ needs.check_for_updates.outputs.notification_body }}
