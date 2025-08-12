@@ -12,6 +12,9 @@ on:
 jobs:
   check_for_updates:
     runs-on: ubuntu-latest
+    # Grant write permissions to the job for committing the status file
+    permissions:
+      contents: write
     outputs:
       change_detected: ${{ steps.run_script.outputs.change_detected }}
       notification_body: ${{ steps.run_script.outputs.notification_body }}
