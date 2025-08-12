@@ -1,10 +1,11 @@
 {
   "SATURDAY | 29.11.2025": {
-    "found": false,
-    "details": ""
+    "found": true,
+    "details": "Details for SUNDAY | 30.11.2025:\n- HYROX ADAPTIVE WOMEN | SUNDAY (SGD 185.00)\n"    
+
   },
   "SUNDAY | 30.11.2025": {
-    "found": true,
-    "details": "Details for SUNDAY | 30.11.2025:\n- HYROX ADAPTIVE WOMEN | SUNDAY (SGD 185.00)\n"
+    "found": false,
+    "details": ""
   }
 }
