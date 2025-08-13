@@ -6,7 +6,11 @@ on:
     # - cron: '0 8 * * *'
     # 9am Kuala Lumpur time is 02:00 UTC in summer, 01:00 UTC in winter
     # Adjust the cron expression as needed for your timezone
-    - cron: '0 2 * * *'
+    - cron: '0 0 * * *'
+    - cron: '0 4 * * *'
+    - cron: '0 8 * * *'
+    - cron: '0 12 * * *'
+    
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 jobs:
