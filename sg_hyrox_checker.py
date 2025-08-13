@@ -121,7 +121,7 @@ def main():
             print("\nCHANGE DETECTED!")
             
             # The notification body is now the full, nicely formatted JSON of the new state
-            notification_body = f"A change was detected on the Hyrox page. The new status is:\n\n{json.dumps(current_status, indent=2)}"
+            notification_body = f"A change was detected on the Hyrox page {URL}. The new status is:\n\n{json.dumps(current_status, indent=2)}"
             
             # Save the new state to the file for the next run
             save_status(current_status)
@@ -139,4 +139,5 @@ def main():
         driver.quit()
 
 if __name__ == "__main__":
+
     main()
