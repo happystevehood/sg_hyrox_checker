@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# --- CONFIGURATION (can remain the same) ---
+# --- CONFIGURATION ---
 URL = "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs"
 KEYWORDS_TO_MONITOR = [
     "SATURDAY | 29.11.2025",
@@ -16,6 +16,8 @@ KEYWORDS_TO_MONITOR = [
 ]
 STATUS_FILE = "check_status.json"
 # --- END CONFIGURATION ---
+
+# --- (All helper functions like setup_driver, load_status, etc. remain the same) ---
 
 def setup_driver():
     """Configures the Selenium WebDriver for headless execution."""
@@ -29,13 +31,13 @@ def setup_driver():
     return driver
 
 def load_status():
-    """Loads the status file or creates a default one."""
+    """Loads the status file or creates a default one with the new structure."""
     try:
         with open(STATUS_FILE, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         print("Status file not found. Creating a new one.")
-        return {keyword: {"found": False, "details": ""} for keyword in KEYWORDS_TO_MONITOR}
+        return {keyword: {"found": False, "details": []} for keyword in KEYWORDS_TO_MONITOR}
 
 def save_status(status_data):
     """Saves the status data to the JSON file."""
@@ -56,16 +58,13 @@ def set_github_action_output(name, value):
 
 def main():
     driver = setup_driver()
-    
-    # 1. Load the state from the previous run
     previous_status = load_status()
-    print("Loaded previous status:")
-    print(json.dumps(previous_status, indent=2))
+    print("Loaded previous status.")
     
-    # Initialize a new status object to be built from the live scrape
-    current_status = {keyword: {"found": False, "details": ""} for keyword in KEYWORDS_TO_MONITOR}
+    current_status = {keyword: {"found": False, "details": []} for keyword in KEYWORDS_TO_MONITOR}
 
     try:
+        # --- (The main scraping logic remains exactly the same) ---
         print(f"Navigating to URL: {URL}")
         driver.get(URL)
         wait = WebDriverWait(driver, 20)
@@ -77,57 +76,87 @@ def main():
         category_texts = [cat.text for cat in available_categories if cat.text]
         print(f"Found available categories on page: {category_texts}")
         
-        # 2. Scrape the page and build the current_status object from scratch
         for keyword in KEYWORDS_TO_MONITOR:
             if keyword in category_texts:
                 print(f"--- Processing found category: {keyword} ---")
                 current_status[keyword]["found"] = True
                 
-                # Click the category to see details
                 keyword_link = wait.until(EC.element_to_be_clickable((By.XPATH, f"//div[contains(text(), '{keyword}')]")))
                 driver.execute_script("arguments[0].click();", keyword_link)
                 wait.until(EC.presence_of_element_located((By.XPATH, "//button[contains(., 'Back to categories')]")))
                 
-                # Scrape details
-                ticket_details_list = []
+                ticket_objects = []
                 ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
-                if not ticket_elements:
-                    ticket_details_list.append("- No ticket information found.")
-                else:
-                    for ticket in ticket_elements:
-                        try:
-                            name = ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text
-                            price = ticket.find_element(By.CLASS_NAME, "price").text
-                            ticket_details_list.append(f"- {name} ({price})")
-                        except Exception:
-                            ticket_details_list.append("- Error parsing a ticket item.")
                 
-                current_status[keyword]["details"] = "\n".join(ticket_details_list)
+                for ticket in ticket_elements:
+                    try:
+                        name = ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text
+                        price = ticket.find_element(By.CLASS_NAME, "price").text
+                        class_string = ticket.get_attribute('class')
+                        status = "Sold out" if "sold-out" in class_string else "Available"
+                        
+                        ticket_objects.append({"name": name, "price": price, "status": status})
+                    except Exception as e:
+                        print(f"Warning: Could not parse a ticket item. Error: {e}")
                 
-                # Go back to the category list to process the next keyword
+                current_status[keyword]["details"] = ticket_objects
+                
                 back_button = driver.find_element(By.XPATH, "//button[contains(., 'Back to categories')]")
                 driver.execute_script("arguments[0].click();", back_button)
                 wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
 
     finally:
         print("\nScraping complete. Comparing states.")
-        print("--- Previous Status ---")
-        print(json.dumps(previous_status, indent=2))
-        print("\n--- Current Status ---")
+        print("--- Current Status ---")
         print(json.dumps(current_status, indent=2))
 
-        # 3. Compare the old and new status objects. This detects ALL changes.
         if previous_status != current_status:
             print("\nCHANGE DETECTED!")
+
+            # --- *** NEW NOTIFICATION BODY LOGIC STARTS HERE *** ---
+
+            # Convert both dictionaries to formatted JSON strings
+            current_status_json = json.dumps(current_status, indent=2)
+            previous_status_json = json.dumps(previous_status, indent=2)
+
+            # Build the HTML email body
+            # Using triple quotes for a clean, multi-line string
+            notification_body = f"""
+            <html>
+            <head>
+              <style>
+                body {{ font-family: sans-serif; }}
+                pre {{
+                  background-color: #f4f4f4;
+                  padding: 1em;
+                  border: 1px solid #ddd;
+                  border-radius: 5px;
+                  white-space: pre-wrap;
+                  word-wrap: break-word;
+                }}
+                code {{ font-family: monospace; }}
+                hr {{ border: 0; border-top: 1px solid #eee; }}
+              </style>
+            </head>
+            <body>
+              <p>A change was detected on the Hyrox page: <a href="{URL}">{URL}</a></p>
+              
+              <h2>New Status:</h2>
+              <pre><code>{current_status_json}</code></pre>
+              
+              <hr>
+              
+              <h2>Previous Status:</h2>
+              <pre><code>{previous_status_json}</code></pre>
+            </body>
+            </html>
+            """
             
-            # The notification body is now the full, nicely formatted JSON of the new state
-            notification_body = f"A change was detected on the Hyrox page {URL}. The new status is:\n\n{json.dumps(current_status, indent=2)}"
+            # --- *** NEW NOTIFICATION BODY LOGIC ENDS HERE *** ---
             
-            # Save the new state to the file for the next run
             save_status(current_status)
             print("Updated status file.")
             
-            # Set GitHub Actions outputs
             set_github_action_output('change_detected', 'true')
             set_github_action_output('notification_body', notification_body)
         else:
@@ -139,5 +168,4 @@ def main():
         driver.quit()
 
 if __name__ == "__main__":
-
     main()

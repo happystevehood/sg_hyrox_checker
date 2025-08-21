@@ -1,10 +1,82 @@
 {
   "SATURDAY | 29.11.2025": {
     "found": true,
-    "details": "- HYROX MEN | SATURDAY (SGD 196.00)\n- HYROX ADAPTIVE MEN | SATURDAY (SGD 196.00)\n- HYROX PRO DOUBLES WOMEN | SATURDAY (SGD 191.00)\n- HYROX PRO WOMEN | SATURDAY (SGD 196.00)\n- HYROX DOUBLES MIXED | SATURDAY (SGD 191.00)\n- HYROX PRO DOUBLES MEN | SATURDAY (SGD 191.00)\n- HYROX PRO MEN | SATURDAY (SGD 196.00)"
+    "details": [
+      {
+        "name": "HYROX MEN | SATURDAY",
+        "price": "SGD 196.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX ADAPTIVE MEN | SATURDAY",
+        "price": "SGD 196.00",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
+        "price": "SGD 191.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO WOMEN | SATURDAY",
+        "price": "SGD 196.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | SATURDAY",
+        "price": "SGD 191.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
+        "price": "SGD 191.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO MEN | SATURDAY",
+        "price": "SGD 196.00",
+        "status": "Sold out"
+      }
+    ]
   },
   "SUNDAY | 30.11.2025": {
     "found": true,
-    "details": "- HYROX DOUBLES MEN | SUNDAY (SGD 191.00)\n- HYROX WOMEN | SUNDAY (SGD 196.00)\n- HYROX ADAPTIVE WOMEN | SUNDAY (SGD 196.00)\n- HYROX DOUBLES WOMEN | SUNDAY (SGD 191.00)\n- HYROX WOMENS RELAY | SUNDAY (SGD 150.00)\n- HYROX MIXED RELAY | SUNDAY (SGD 150.00)\n- HYROX MENS RELAY | SUNDAY (SGD 150.00)"
+    "details": [
+      {
+        "name": "HYROX DOUBLES MEN | SUNDAY",
+        "price": "SGD 191.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMEN | SUNDAY",
+        "price": "SGD 196.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX ADAPTIVE WOMEN | SUNDAY",
+        "price": "SGD 196.00",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | SUNDAY",
+        "price": "SGD 191.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | SUNDAY",
+        "price": "SGD 150.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX MIXED RELAY | SUNDAY",
+        "price": "SGD 150.00",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX MENS RELAY | SUNDAY",
+        "price": "SGD 150.00",
+        "status": "Sold out"
+      }
+    ]
   }
 }
