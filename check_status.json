@@ -4,7 +4,13 @@
     "details": []
   },
   "SUNDAY | 30.11.2025": {
-    "found": false,
-    "details": []
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX ADAPTIVE WOMEN | SUNDAY",
+        "price": "SGD 196.00",
+        "status": "Available"
+      }
+    ]
   }
 }
