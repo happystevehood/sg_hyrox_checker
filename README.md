@@ -18,3 +18,7 @@ To run python script only in VS code on my windows machine with miniconda
 
 >C:\Users\Steph\miniconda3\Scripts\activate.bat base
 >python sg_hyrox_checker.py
+
+but also need to setup secret email/password environment variables etc....
+>set  MAIL_USERNAME=
+>set  MAIL_PASSWORD=
