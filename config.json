@@ -1,0 +1,22 @@
+[
+  {
+    "name": "SG Nov '25",
+    "url": "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs",
+    "keywords": [
+      "SATURDAY | 29.11.2025",
+      "SUNDAY | 30.11.2025"
+    ],
+    "status_file": "sing_nov_25_status.json",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
+    "name": "Seoul Nov '25",
+    "url": "https://korea.hyrox.com/checkout/682c8c9b34f0b450da0e3bb9",
+    "keywords": [
+      "SATURDAY I 08.11.2025",
+      "SUNDAY I 09.11.2025"
+    ],
+    "status_file": "seoul_nov_25_status.json",
+    "email_to": "happychildhood@yahoo.com"
+  }
+]
