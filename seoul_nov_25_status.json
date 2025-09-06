@@ -1,10 +1,82 @@
 {
   "SATURDAY I 08.11.2025": {
     "found": true,
-    "details": []
+    "details": [
+      {
+        "name": "HYROX MEN | HYROX \ub0a8\uc790 \uc624\ud508 | SATURDAY",
+        "price": "\u20a9206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX ADAPTIVE MEN | HYROX \uc5b4\ub381\ud2f0\ube0c \ub0a8\uc790 | SATURDAY",
+        "price": "\u20a9206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | HYROX \ub354\ube14 \uc5ec\uc790 \ud504\ub85c | SATURDAY",
+        "price": "\u20a9196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO WOMEN | HYROX \uc5ec\uc790 \ud504\ub85c | SATURDAY",
+        "price": "\u20a9206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | HYROX \ub354\ube14 \ud63c\uc131 | SATURDAY",
+        "price": "\u20a9196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO MEN | HYROX \ub0a8\uc790 \ud504\ub85c | SATURDAY",
+        "price": "\u20a9206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | HYROX \ub354\ube14 \ub0a8\uc790 \ud504\ub85c | SATURDAY",
+        "price": "\u20a9196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | HYROX \uc5ec\uc790 \ub9b4\ub808\uc774 | SATURDAY",
+        "price": "\u20a9155,000",
+        "status": "Sold out"
+      }
+    ]
   },
   "SUNDAY I 09.11.2025": {
-    "found": false,
-    "details": []
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX DOUBLES MEN | HYROX \ub354\ube14 \ub0a8\uc790 | SUNDAY",
+        "price": "\u20a9196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMEN | HYROX \uc5ec\uc790 \uc624\ud508 | SUNDAY",
+        "price": "\u20a9206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX ADAPTIVE WOMEN | HYROX \uc5b4\ub381\ud2f0\ube0c \uc5ec\uc790 | SUNDAY",
+        "price": "\u20a9206,700",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | HYROX \ub354\ube14 \uc5ec\uc790 | SUNDAY",
+        "price": "\u20a9196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX MIXED RELAY | HYROX \ubbf9\uc2a4 \ub9b4\ub808\uc774 | SUNDAY",
+        "price": "\u20a9155,000",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX MENS RELAY | HYROX \ub0a8\uc790 \ub9b4\ub808\uc774 | SUNDAY",
+        "price": "\u20a9155,000",
+        "status": "Sold out"
+      }
+    ]
   }
 }
