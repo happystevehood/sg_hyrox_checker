@@ -29,7 +29,7 @@ jobs:
         env:
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-        run: python check_hyrox_pages.py # Use the new script name
+        run: python -u check_hyrox_pages.py # Use the new script name
 
       # This step now commits any and all updated .json status files
       - name: Commit and push status files
