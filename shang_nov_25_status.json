@@ -1,2 +1,82 @@
 {
+  "Saturday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX MEN | Saturday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO WOMEN | Saturday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO MEN | Saturday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | Saturday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | Saturday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | Saturday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
+        "name": "Spectator | Saturday",
+        "price": "USD10",
+        "status": "Available"
+      }
+    ]
+  },
+  "Sunday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX WOMEN | Sunday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | Sunday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MEN | Sunday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN'S RELAY | Sunday",
+        "price": "USD61",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN'S RELAY | Sunday",
+        "price": "USD61",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MIXED RELAY | Sunday",
+        "price": "USD61",
+        "status": "Available"
+      },
+      {
+        "name": "Spectator | Sunday",
+        "price": "USD10",
+        "status": "Available"
+      }
+    ]
+  }
 }
