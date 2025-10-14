@@ -1,5 +1,17 @@
 [
   {
+    "name": "Seoul Nov '25",
+    "on_sale": true,
+    "url": "https://hyrox.com/event/hyrox-seoul/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
+    "name": "Shangahi Nov '25",
+    "on_sale": true,
+    "url": "https://hyrox.com/event/hyrox-shanghai/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
     "name": "SG Nov '25",
     "on_sale": true,
     "url": "https://hyrox.com/event/hyrox-singapore-expo/",
@@ -12,9 +24,22 @@
     "email_to": "happychildhood@yahoo.com"
   },
   {
+    "name": "Osaka Jan '26",
+    "on_sale": true,
+    "url": "https://hyrox.com/event/hyrox-osaka/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  
+  {
     "name": "Aukland Jan 26",
     "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-auckland/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
+    "name": "Taipei Feb 26",
+    "on_sale": false,
+    "url": "https://hyrox.com/event/hyrox-taipei/",
     "email_to": "happychildhood@yahoo.com"
   },
   {
@@ -22,11 +47,11 @@
     "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-bangkok/",
     "email_to": "happychildhood@yahoo.com"
-  },
+  }, 
   {
-    "name": "Osaka '26",
-    "on_sale": true,
-    "url": "https://hyrox.com/event/hyrox-osaka/",
+    "name": "Brisbane Apr 26",
+    "on_sale": false,
+    "url": "https://hyrox.com/event/hyrox-brisbane/",
     "email_to": "happychildhood@yahoo.com"
   },
   {
@@ -49,7 +74,7 @@
   },
   {
     "name": "SG TBC '26 ",
-    "on_sale": true,
+    "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-singapore/",
     "email_to": "happychildhood@yahoo.com"
   }

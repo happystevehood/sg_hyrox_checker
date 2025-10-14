@@ -3,11 +3,6 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX ADAPTIVE MEN | SATURDAY",
-        "price": "SGD 196.00",
-        "status": "Available"
-      },
-      {
         "name": "HYROX PRO WOMEN | SATURDAY",
         "price": "SGD 196.00",
         "status": "Available"
@@ -21,12 +16,6 @@
   },
   "SUNDAY | 30.11.2025": {
     "found": true,
-    "details": [
-      {
-        "name": "HYROX ADAPTIVE WOMEN | SUNDAY",
-        "price": "SGD 196.00",
-        "status": "Available"
-      }
-    ]
+    "details": []
   }
 }

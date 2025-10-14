@@ -3,6 +3,7 @@
     "found": true,
     "details": [
       {
+<<<<<<< Updated upstream
         "name": "HYROX MEN | HYROX \ub0a8\uc790 \uc624\ud508 | SATURDAY",
         "price": "\u20a9206,700",
         "status": "Sold out"
@@ -40,6 +41,40 @@
       {
         "name": "HYROX WOMENS RELAY | HYROX \uc5ec\uc790 \ub9b4\ub808\uc774 | SATURDAY",
         "price": "\u20a9155,000",
+=======
+        "name": "HYROX MEN | HYROX   | SATURDAY",
+        "price": "206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | HYROX    | SATURDAY",
+        "price": "196,300",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO WOMEN | HYROX   | SATURDAY",
+        "price": "206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | HYROX   | SATURDAY",
+        "price": "196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO MEN | HYROX   | SATURDAY",
+        "price": "206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | HYROX    | SATURDAY",
+        "price": "196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | HYROX   | SATURDAY",
+        "price": "155,000",
+>>>>>>> Stashed changes
         "status": "Available"
       }
     ]
@@ -48,6 +83,7 @@
     "found": true,
     "details": [
       {
+<<<<<<< Updated upstream
         "name": "HYROX DOUBLES MEN | HYROX \ub354\ube14 \ub0a8\uc790 | SUNDAY",
         "price": "\u20a9196,300",
         "status": "Sold out"
@@ -75,6 +111,30 @@
       {
         "name": "HYROX MENS RELAY | HYROX \ub0a8\uc790 \ub9b4\ub808\uc774 | SUNDAY",
         "price": "\u20a9155,000",
+=======
+        "name": "HYROX DOUBLES MEN | HYROX   | SUNDAY",
+        "price": "196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMEN | HYROX   | SUNDAY",
+        "price": "206,700",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | HYROX   | SUNDAY",
+        "price": "196,300",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX MIXED RELAY | HYROX   | SUNDAY",
+        "price": "155,000",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MENS RELAY | HYROX   | SUNDAY",
+        "price": "155,000",
+>>>>>>> Stashed changes
         "status": "Sold out"
       }
     ]
