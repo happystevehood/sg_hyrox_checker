@@ -31,11 +31,6 @@
         "name": "HYROX PRO DOUBLES MEN | Saturday",
         "price": "USD98",
         "status": "Available"
-      },
-      {
-        "name": "Spectator | Saturday",
-        "price": "USD10",
-        "status": "Available"
       }
     ]
   },
@@ -70,11 +65,6 @@
       {
         "name": "HYROX MIXED RELAY | Sunday",
         "price": "USD61",
-        "status": "Available"
-      },
-      {
-        "name": "Spectator | Sunday",
-        "price": "USD10",
         "status": "Available"
       }
     ]

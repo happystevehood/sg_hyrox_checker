@@ -36,36 +36,6 @@
         "name": "HYROX WOMEN | THURSDAY",
         "price": "AUD209",
         "status": "Available"
-      },
-      {
-        "name": "HYATT | HYROX MEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES MEN | THURSDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX WOMEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX ADAPTIVE MEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX ADAPTIVE WOMEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES WOMEN | THURSDAY",
-        "price": "AUD204",
-        "status": "Sold out"
       }
     ]
   },
@@ -81,21 +51,6 @@
         "name": "HYROX MEN | FRIDAY",
         "price": "AUD209",
         "status": "Available"
-      },
-      {
-        "name": "HYATT | HYROX MEN | FRIDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX ADAPTIVE MEN | FRIDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES MIXED | FRIDAY",
-        "price": "AUD204",
-        "status": "Sold out"
       }
     ]
   },
@@ -121,26 +76,6 @@
         "name": "HYROX PRO MEN | SATURDAY",
         "price": "AUD209",
         "status": "Available"
-      },
-      {
-        "name": "HYATT | HYROX PRO WOMEN | SATURDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX PRO MEN | SATURDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX PRO DOUBLES WOMEN | SATURDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX PRO DOUBLES MEN | SATURDAY",
-        "price": "AUD204",
-        "status": "Sold out"
       }
     ]
   },
@@ -166,31 +101,6 @@
         "name": "HYROX WOMEN | SUNDAY",
         "price": "AUD209",
         "status": "Available"
-      },
-      {
-        "name": "HYATT | HYROX WOMEN | SUNDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX ADAPTIVE WOMEN | SUNDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES WOMEN | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES MIXED | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYATT | HYROX DOUBLES MEN | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
       }
     ]
   }
