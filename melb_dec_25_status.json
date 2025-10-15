@@ -76,6 +76,11 @@
         "name": "HYROX PRO MEN | SATURDAY",
         "price": "AUD209",
         "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | SATURDAY",
+        "price": "AUD204",
+        "status": "Sold out"
       }
     ]
   },
