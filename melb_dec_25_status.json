@@ -81,6 +81,16 @@
         "name": "HYROX DOUBLES WOMEN | SATURDAY",
         "price": "AUD204",
         "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | SATURDAY",
+        "price": "AUD204",
+        "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MEN | SATURDAY",
+        "price": "AUD204",
+        "status": "Sold out"
       }
     ]
   },
