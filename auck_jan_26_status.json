@@ -1,0 +1,107 @@
+{
+  "Thursday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX MEN | THURSDAY",
+        "price": "NZD209",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | THURSDAY",
+        "price": "NZD154",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN'S RELAY | THURSDAY",
+        "price": "NZD154",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MIXED RELAY | THURSDAY",
+        "price": "NZD154",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MEN | THURSDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | THURSDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN | THURSDAY",
+        "price": "NZD209",
+        "status": "Available"
+      }
+    ]
+  },
+  "Friday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX DOUBLES MIXED | FRIDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN | FRIDAY",
+        "price": "NZD209",
+        "status": "Available"
+      }
+    ]
+  },
+  "Saturday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO WOMEN | SATURDAY",
+        "price": "NZD209",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO MEN | SATURDAY",
+        "price": "NZD209",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      }
+    ]
+  },
+  "Sunday": {
+    "found": true,
+    "details": [
+      {
+        "name": "HYROX DOUBLES WOMEN | SUNDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | SUNDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MEN | SUNDAY",
+        "price": "NZD192.5",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN | SUNDAY",
+        "price": "NZD209",
+        "status": "Available"
+      }
+    ]
+  }
+}

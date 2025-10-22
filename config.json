@@ -82,5 +82,38 @@
         "CHARITY",
         "SPECTATOR"
     ]
+  },
+  {
+    "name": "Auckland Jan '26",
+    "site_type": "vivenu_v2",
+    "url": "https://newzealand.hyrox.com/event/hyrox-new-zealand-season-25-26-nstacp",
+    "keywords": [
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "status_file": "auck_jan_26_status.json",
+    "email_to": "happychildhood@yahoo.com",
+    "exclude_prefixes": [
+        "HYROX ADAPTIVE",
+        "CHARITY",
+        "SPECTATOR"
+    ]
+  },
+  {
+    "name": "Tapei Feb '26",
+    "site_type": "vivenu_v2",
+    "url": "https://tw.hyrox.com/event/hyrox-taipei-season-25-26-ipsywf",
+    "keywords": [
+      "HYROX"
+    ],
+    "status_file": "taipei_feb_26_status.json",
+    "email_to": "happychildhood@yahoo.com",
+    "exclude_prefixes": [
+        "HYROX ADAPTIVE",
+        "CHARITY",
+        "SPECTATOR"
+    ]
   }
 ]
