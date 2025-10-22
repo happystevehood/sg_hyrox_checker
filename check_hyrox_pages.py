@@ -17,7 +17,7 @@ from urllib.parse import urljoin
 TICKET_DETAILS_CONFIG = "config.json"
 ON_SALE_CONFIG = "onsale_config.json"
 
-# --- HELPER FUNCTIONS ---
+# --- HELPER FUNCTIONS (No changes) ---
 def setup_driver():
     chrome_options = Options(); chrome_options.add_argument("--headless"); chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage"); chrome_options.add_argument("--window-size=1920,1080")
@@ -37,29 +37,35 @@ def normalize_text(text):
     if not isinstance(text, str): return text
     return text.encode('ascii', 'ignore').decode('utf-8').strip()
 
-# --- SCRAPER 1: "vivenu_v1" (Updated to exclude 'Sold out' items) ---
+# --- SCRAPER 1: "vivenu_v1" (Updated to find unmatched categories) ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
     wait = WebDriverWait(driver, 20)
+    
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
     category_links_xpath = "//a[.//div[contains(@class, 'vi-text')]]"
-    available_categories = wait.until(EC.presence_of_all_elements_located((By.XPATH, category_links_xpath)))
-    category_texts = [cat.text for cat in available_categories if cat.text]
+    available_categories_elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, category_links_xpath)))
+    all_page_categories = [cat.text for cat in available_categories_elements if cat.text]
+
+    # **NEW LOGIC**: Find categories on the page that are not in our keywords list
+    unmatched_categories = list(set(all_page_categories) - set(keywords))
+    if unmatched_categories:
+        print(f"Found new, untracked categories: {unmatched_categories}")
+    
     for keyword in keywords:
-        if keyword in category_texts:
+        if keyword in all_page_categories:
             current_status[keyword]["found"] = True
             keyword_link = wait.until(EC.element_to_be_clickable((By.XPATH, f"//div[contains(text(), '{keyword}')]")))
             driver.execute_script("arguments[0].click();", keyword_link)
             wait.until(EC.presence_of_element_located((By.XPATH, "//button[contains(., 'Back to categories')]")))
+            
             ticket_objects = []
             ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
             for ticket in ticket_elements:
                 try:
                     status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
-                    # **NEW LOGIC**: If the ticket is sold out, skip it entirely.
-                    if status == "Sold out":
-                        continue
+                    if status == "Sold out": continue
                     
                     clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
                     if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
@@ -68,18 +74,21 @@ def _process_vivenu_v1(site_config, driver):
                     ticket_objects.append({"name": clean_name, "price": clean_price, "status": status})
                 except Exception: continue
             current_status[keyword]["details"] = ticket_objects
+            
             back_button_locator = (By.XPATH, "//button[contains(., 'Back to categories')]")
             back_button = wait.until(EC.element_to_be_clickable(back_button_locator))
             driver.execute_script("arguments[0].click();", back_button)
             wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
+    
+    # Add the new list to the final status object
+    current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" (Updated to exclude 'Sold out' items) ---
+# --- SCRAPER 2: "vivenu_v2" (No changes) ---
 def _process_vivenu_v2(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 20)
-
+    wait = WebDriverWait(driver, 15)
     json_data = None
     try:
         script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
@@ -100,36 +109,27 @@ def _process_vivenu_v2(site_config, driver):
 
     tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
     currency_symbol = json_data.get("props", {}).get("pageProps", {}).get("seller", {}).get("currency", "$")
-    
     for ticket in tickets_list:
         status = "Available" if ticket.get("active") else "Sold out"
-        # **NEW LOGIC**: If the ticket is sold out, skip it entirely.
-        if status == "Sold out":
-            continue
-            
+        if status == "Sold out": continue
         clean_name = normalize_text(ticket.get("name", ""))
         if ticket.get("styleOptions", {}).get("hiddenInSelectionArea"): continue
         if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
-        
         price = ticket.get("displayPrice")
-        
         for keyword in keywords:
             if keyword.lower() in clean_name.lower():
                 current_status[keyword]["details"].append({"name": clean_name, "price": f"{currency_symbol}{price}" if price is not None else "N/A", "status": status})
                 break
-                
     return current_status
 
-# --- MAIN ROUTER & PROCESSOR (Updated) ---
+# --- MAIN ROUTER & PROCESSOR (No changes) ---
 def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
     print(f"\n--- [Ticket Details] Processing: {name} (Type: {site_type}) ---")
-
     try:
         with open(status_file, 'r', encoding='utf-8') as f: previous_status = json.load(f)
     except FileNotFoundError: previous_status = {}
-    
     current_status = {}
     driver = setup_driver()
     try:
@@ -146,8 +146,6 @@ def process_ticket_details_site(site_config):
         print(f"An unexpected error occurred for '{name}': {e}")
     finally:
         driver.quit()
-
-    # Direct comparison now works as intended, because both states are pre-filtered.
     if previous_status != current_status and current_status:
         print(f"CHANGE DETECTED for {name}!")
         with open(status_file, 'w', encoding='utf-8') as f: json.dump(current_status, f, indent=2, ensure_ascii=False)

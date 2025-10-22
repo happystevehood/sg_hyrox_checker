@@ -23,5 +23,8 @@
         "status": "Available"
       }
     ]
-  }
+  },
+  "unmatched_categories": [
+    "Spectator"
+  ]
 }

@@ -12,7 +12,7 @@
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
-        "SPECTATOR"
+        "Spectator"
     ]
   },
   {
@@ -40,11 +40,12 @@
       "SUNDAY | 30.11.2025"
     ],
     "status_file": "sing_nov_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
+    "email_to": "happychildhood@yahoo.com,Stephen.A.Cleary@outlook.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
-        "SPECTATOR"
+        "Spectator",
+        "SATURDAY | CORPORATE RELAY"
     ]
   },
   {
@@ -94,7 +95,7 @@
       "Sunday"
     ],
     "status_file": "auck_jan_26_status.json",
-    "email_to": "happychildhood@yahoo.com",
+    "email_to": "happychildhood@yahoo.com,Stephen.A.Cleary@outlook.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
