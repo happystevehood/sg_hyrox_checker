@@ -11,6 +11,11 @@
         "name": "HYROX PRO WOMEN | SATURDAY",
         "price": "SGD 196.00",
         "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
+        "price": "SGD 191.00",
+        "status": "Available"
       }
     ]
   },
@@ -40,7 +45,7 @@
     ]
   },
   "unmatched_categories": [
-    "SATURDAY | CORPORATE RELAY | 29.11.2025",
-    "Spectator"
+    "Spectator",
+    "SATURDAY | CORPORATE RELAY | 29.11.2025"
   ]
 }
