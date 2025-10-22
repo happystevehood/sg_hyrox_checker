@@ -3,56 +3,15 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX MEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX WOMENS RELAY | THURSDAY",
-        "price": "AUD160",
-        "status": "Sold out"
-      },
-      {
         "name": "HYROX MENS RELAY | THURSDAY",
         "price": "AUD160",
         "status": "Available"
-      },
-      {
-        "name": "HYROX MIXED RELAY | THURSDAY",
-        "price": "AUD160",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX DOUBLES MEN | THURSDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX DOUBLES WOMEN | THURSDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX WOMEN | THURSDAY",
-        "price": "AUD209",
-        "status": "Sold out"
       }
     ]
   },
   "Friday": {
     "found": true,
-    "details": [
-      {
-        "name": "HYROX DOUBLES MIXED | FRIDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX MEN | FRIDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      }
-    ]
+    "details": []
   },
   "Saturday": {
     "found": true,
@@ -96,27 +55,6 @@
   },
   "Sunday": {
     "found": true,
-    "details": [
-      {
-        "name": "HYROX DOUBLES WOMEN | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX DOUBLES MIXED | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX DOUBLES MEN | SUNDAY",
-        "price": "AUD204",
-        "status": "Sold out"
-      },
-      {
-        "name": "HYROX WOMEN | SUNDAY",
-        "price": "AUD209",
-        "status": "Sold out"
-      }
-    ]
+    "details": []
   }
 }
