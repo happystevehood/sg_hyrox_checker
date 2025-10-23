@@ -4,27 +4,27 @@
     "details": [
       {
         "name": "HYROX DOUBLES MEN  | FRIDAY",
-        "price": "N/A",
+        "price": "JPY20339",
         "status": "Available"
       },
       {
         "name": "HYROX WOMENS RELAY  | FRIDAY",
-        "price": "N/A",
+        "price": "JPY16057",
         "status": "Available"
       },
       {
         "name": "HYROX MENS RELAY  | FRIDAY",
-        "price": "N/A",
+        "price": "JPY16057",
         "status": "Available"
       },
       {
         "name": "HYROX MIXED RELAY  | FRIDAY",
-        "price": "N/A",
+        "price": "JPY16057",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES WOMEN  | FRIDAY",
-        "price": "N/A",
+        "price": "JPY20339",
         "status": "Available"
       }
     ]
@@ -34,12 +34,12 @@
     "details": [
       {
         "name": "HYROX WOMEN  | SATURDAY",
-        "price": "N/A",
+        "price": "JPY21406",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES MIXED  | SATURDAY",
-        "price": "N/A",
+        "price": "JPY20339",
         "status": "Available"
       }
     ]
@@ -49,27 +49,27 @@
     "details": [
       {
         "name": "HYROX PRO WOMEN  | SUNDAY",
-        "price": "N/A",
+        "price": "JPY21406",
         "status": "Available"
       },
       {
         "name": "HYROX PRO MEN  | SUNDAY",
-        "price": "N/A",
+        "price": "JPY21406",
         "status": "Available"
       },
       {
         "name": "HYROX MEN  | SUNDAY",
-        "price": "N/A",
+        "price": "JPY21406",
         "status": "Available"
       },
       {
         "name": "HYROX PRO DOUBLES WOMEN  | SUNDAY",
-        "price": "N/A",
+        "price": "JPY20339",
         "status": "Available"
       },
       {
         "name": "HYROX PRO DOUBLES MEN  | SUNDAY",
-        "price": "N/A",
+        "price": "JPY20339",
         "status": "Available"
       }
     ]
