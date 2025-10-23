@@ -37,7 +37,7 @@ def normalize_text(text):
     if not isinstance(text, str): return text
     return text.encode('ascii', 'ignore').decode('utf-8').strip()
 
-# --- SCRAPER 1: "vivenu_v1" (Updated to find unmatched categories) ---
+# --- SCRAPER 1: "vivenu_v1" (Updated with one-line sort) ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -48,8 +48,10 @@ def _process_vivenu_v1(site_config, driver):
     available_categories_elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, category_links_xpath)))
     all_page_categories = [cat.text for cat in available_categories_elements if cat.text]
 
-    # **NEW LOGIC**: Find categories on the page that are not in our keywords list
     unmatched_categories = list(set(all_page_categories) - set(keywords))
+    # --- *** THIS IS THE ONLY CHANGE *** ---
+    unmatched_categories.sort() # Sort the list alphabetically for consistent order
+    
     if unmatched_categories:
         print(f"Found new, untracked categories: {unmatched_categories}")
     
@@ -80,7 +82,6 @@ def _process_vivenu_v1(site_config, driver):
             driver.execute_script("arguments[0].click();", back_button)
             wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
     
-    # Add the new list to the final status object
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
@@ -109,6 +110,7 @@ def _process_vivenu_v2(site_config, driver):
 
     tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
     currency_symbol = json_data.get("props", {}).get("pageProps", {}).get("seller", {}).get("currency", "$")
+    
     for ticket in tickets_list:
         status = "Available" if ticket.get("active") else "Sold out"
         if status == "Sold out": continue
@@ -127,9 +129,11 @@ def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
     print(f"\n--- [Ticket Details] Processing: {name} (Type: {site_type}) ---")
+
     try:
         with open(status_file, 'r', encoding='utf-8') as f: previous_status = json.load(f)
     except FileNotFoundError: previous_status = {}
+    
     current_status = {}
     driver = setup_driver()
     try:
@@ -146,6 +150,7 @@ def process_ticket_details_site(site_config):
         print(f"An unexpected error occurred for '{name}': {e}")
     finally:
         driver.quit()
+
     if previous_status != current_status and current_status:
         print(f"CHANGE DETECTED for {name}!")
         with open(status_file, 'w', encoding='utf-8') as f: json.dump(current_status, f, indent=2, ensure_ascii=False)
@@ -154,7 +159,6 @@ def process_ticket_details_site(site_config):
     else:
         print(f"No changes detected for {name}."); return {"change_detected": False}
 
-# --- ON-SALE PROCESSOR & MAIN FUNCTION (No changes below) ---
 def process_on_sale_site(site_config):
     name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
     print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
