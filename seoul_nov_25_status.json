@@ -16,7 +16,13 @@
   },
   "SUNDAY I 09.11.2025": {
     "found": true,
-    "details": []
+    "details": [
+      {
+        "name": "HYROX WOMEN | HYROX   | SUNDAY",
+        "price": "206,700",
+        "status": "Available"
+      }
+    ]
   },
   "unmatched_categories": [
     "Spectator"

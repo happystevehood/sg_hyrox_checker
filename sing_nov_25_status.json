@@ -3,11 +3,6 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX MEN | SATURDAY",
-        "price": "SGD 196.00",
-        "status": "Available"
-      },
-      {
         "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
         "price": "SGD 191.00",
         "status": "Available"
@@ -30,11 +25,6 @@
       {
         "name": "HYROX WOMEN | SUNDAY",
         "price": "SGD 196.00",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX DOUBLES WOMEN | SUNDAY",
-        "price": "SGD 191.00",
         "status": "Available"
       },
       {
