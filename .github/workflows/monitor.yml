@@ -22,7 +22,7 @@ jobs:
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
       - name: Install Python dependencies
-        run: pip install selenium
+        run: pip install selenium Pillow pytz
       - name: Run Python Selenium script
         id: run_script
         # Pass secrets to the Python script as environment variables
