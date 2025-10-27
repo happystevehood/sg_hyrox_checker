@@ -3,6 +3,11 @@
     "found": true,
     "details": [
       {
+        "name": "HYROX MEN | HYROX   | SATURDAY",
+        "price": "206,700",
+        "status": "Available"
+      },
+      {
         "name": "HYROX PRO DOUBLES WOMEN | HYROX    | SATURDAY",
         "price": "196,300",
         "status": "Available"
@@ -15,6 +20,11 @@
       {
         "name": "HYROX DOUBLES MIXED | HYROX   | SATURDAY",
         "price": "196,300",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO MEN | HYROX   | SATURDAY",
+        "price": "206,700",
         "status": "Available"
       },
       {
@@ -32,6 +42,11 @@
   "SUNDAY I 09.11.2025": {
     "found": true,
     "details": [
+      {
+        "name": "HYROX DOUBLES MEN | HYROX   | SUNDAY",
+        "price": "196,300",
+        "status": "Available"
+      },
       {
         "name": "HYROX WOMEN | HYROX   | SUNDAY",
         "price": "206,700",
