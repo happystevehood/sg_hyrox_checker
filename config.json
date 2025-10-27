@@ -68,6 +68,24 @@
     ]
   },
   {
+    "name": "Shenzen Dec '25",
+    "site_type": "vivenu_v2",
+    "url": "https://china.hyrox.com/event/hyrox-shenzhen-season-25-26-dv8a0g",
+    "keywords": [
+      "Saturday",
+      "Sunday"
+    ],
+    "status_file": "shenzen_dec_25_status.json",
+    "email_to": "happychildhood@yahoo.com",
+    "exclude_prefixes": [
+        "HYROX ADAPTIVE",
+        "CHARITY",
+        "SPECTATOR",
+        "HYATT",
+        "Spectator"
+    ]
+  },  
+  {
     "name": "Osaka Jan '26",
     "site_type": "vivenu_v2",
     "url": "https://japan.hyrox.com/event/hyrox-osaka-season-25-26-cu5rx5",
