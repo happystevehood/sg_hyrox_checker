@@ -19,6 +19,9 @@ To run python script only in VS code on my windows machine with miniconda
 >C:\Users\Steph\miniconda3\Scripts\activate.bat base
 >python check_hyrox_pages.py
 
+To create a summary availability matrix do the following:
+>python check_hyrox_pages.py --matrix
+
 but also need to setup secret email/password environment variables etc....
 >set  MAIL_USERNAME=
 >set  MAIL_PASSWORD=
