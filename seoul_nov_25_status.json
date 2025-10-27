@@ -13,6 +13,16 @@
         "status": "Available"
       },
       {
+        "name": "HYROX DOUBLES MIXED | HYROX   | SATURDAY",
+        "price": "196,300",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | HYROX    | SATURDAY",
+        "price": "196,300",
+        "status": "Available"
+      },
+      {
         "name": "HYROX WOMENS RELAY | HYROX   | SATURDAY",
         "price": "155,000",
         "status": "Available"
@@ -23,6 +33,11 @@
     "found": true,
     "details": [
       {
+        "name": "HYROX DOUBLES MEN | HYROX   | SUNDAY",
+        "price": "196,300",
+        "status": "Available"
+      },
+      {
         "name": "HYROX WOMEN | HYROX   | SUNDAY",
         "price": "206,700",
         "status": "Available"
@@ -30,6 +45,16 @@
       {
         "name": "HYROX DOUBLES WOMEN | HYROX   | SUNDAY",
         "price": "196,300",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MIXED RELAY | HYROX   | SUNDAY",
+        "price": "155,000",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MENS RELAY | HYROX   | SUNDAY",
+        "price": "155,000",
         "status": "Available"
       }
     ]
