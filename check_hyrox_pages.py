@@ -44,17 +44,7 @@ def normalize_text(text):
 def _normalize_for_matrix(text):
     return text.upper().replace("'", "")
 
-def _remove_price_for_comparison(status_data):
-    if not status_data: return {}
-    data_copy = json.loads(json.dumps(status_data))
-    for category, data in data_copy.items():
-        if "details" in data and isinstance(data["details"], list):
-            for ticket in data["details"]:
-                if "price" in ticket:
-                    del ticket["price"]
-    return data_copy
-
-# --- SCRAPER 1: "vivenu_v1" (Updated with sorting) ---
+# --- SCRAPER 1: "vivenu_v1" (Updated to remove price) ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -79,14 +69,10 @@ def _process_vivenu_v1(site_config, driver):
                     if status == "Sold out": continue
                     clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
                     if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
-                    clean_price = normalize_text(ticket.find_element(By.CLASS_NAME, "price").text)
-                    ticket_objects.append({"name": clean_name, "price": clean_price, "status": status})
+                    ticket_objects.append({"name": clean_name, "status": status})
                 except Exception: continue
-            
-            # --- *** FIX: Sort the list of tickets by name for consistent order *** ---
             ticket_objects.sort(key=lambda x: x['name'])
             current_status[keyword]["details"] = ticket_objects
-            
             back_button_locator = (By.XPATH, "//button[contains(., 'Back to categories')]")
             back_button = wait.until(EC.element_to_be_clickable(back_button_locator))
             driver.execute_script("arguments[0].click();", back_button)
@@ -94,7 +80,7 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" (Updated with sorting) ---
+# --- SCRAPER 2: "vivenu_v2" (Updated to remove price) ---
 def _process_vivenu_v2(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
@@ -117,24 +103,19 @@ def _process_vivenu_v2(site_config, driver):
         script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
         json_data = json.loads(script_element.get_attribute("textContent"))
     tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
-    currency_symbol = json_data.get("props", {}).get("pageProps", {}).get("seller", {}).get("currency", "$")
     for ticket in tickets_list:
         status = "Available" if ticket.get("active") else "Sold out"
         if status == "Sold out": continue
         clean_name = normalize_text(ticket.get("name", ""))
         if ticket.get("styleOptions", {}).get("hiddenInSelectionArea"): continue
         if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
-        price = ticket.get("displayPrice")
         for keyword in keywords:
             if keyword.lower() in clean_name.lower():
-                current_status[keyword]["details"].append({"name": clean_name, "price": f"{currency_symbol}{price}" if price is not None else "N/A", "status": status})
+                current_status[keyword]["details"].append({"name": clean_name, "status": status})
                 break
-    
-    # --- *** FIX: Sort the list of tickets in each category by name *** ---
     for category_data in current_status.values():
         if "details" in category_data:
             category_data['details'].sort(key=lambda x: x['name'])
-            
     return current_status
 
 # --- MAIN ROUTER & PROCESSOR ---
@@ -161,9 +142,9 @@ def process_ticket_details_site(site_config):
         print(f"An unexpected error occurred for '{name}': {e}")
     finally:
         driver.quit()
-    comparison_previous = _remove_price_for_comparison(previous_status)
-    comparison_current = _remove_price_for_comparison(current_status)
-    if comparison_previous != comparison_current and current_status:
+
+    # Direct comparison now works perfectly as price is no longer a factor.
+    if previous_status != current_status and current_status:
         print(f"CHANGE DETECTED for {name}!")
         with open(status_file, 'w', encoding='utf-8') as f: json.dump(current_status, f, indent=2, ensure_ascii=False)
         print(f"Updated status file: {status_file}")
