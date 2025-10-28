@@ -232,3 +232,80 @@ def generate_availability_matrix():
         print("Warning: Arial font not found. Using default font."); font = ImageFont.load_default(); timestamp_font = font
     img = Image.new('RGB', (img_width, img_height), BG_COLOR)
     draw = ImageDraw.Draw(img)
+    for i, name in enumerate(site_names):
+        x = ROW_HEADER_WIDTH + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING; y = COL_HEADER_HEIGHT - 10 + PADDING
+        txt = Image.new('L', (COL_HEADER_HEIGHT, FONT_SIZE + 10)); d = ImageDraw.Draw(txt)
+        d.text((0, 0), name, font=font, fill=255)
+        w = txt.rotate(90, expand=1)
+        img.paste(TEXT_COLOR, (int(x - w.size[0]/2), int(y - w.size[1])), w)
+    for i, category in enumerate(DISPLAY_CATEGORIES):
+        x = PADDING; y = COL_HEADER_HEIGHT + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING
+        draw.text((x, y), category, font=font, fill=TEXT_COLOR, anchor="lm")
+    for row_idx, category in enumerate(DISPLAY_CATEGORIES):
+        y1 = COL_HEADER_HEIGHT + (row_idx * CELL_SIZE) + PADDING; y2 = y1 + CELL_SIZE
+        for col_idx, site_name in enumerate(site_names):
+            x1 = ROW_HEADER_WIDTH + (col_idx * CELL_SIZE) + PADDING; x2 = x1 + CELL_SIZE
+            is_available = matrix_data[site_name][category]
+            color = AVAILABLE_COLOR if is_available else UNAVAILABLE_COLOR
+            draw.rectangle([x1, y1, x2, y2], fill=color, outline=GRID_COLOR)
+    try:
+        mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
+        mst_now = datetime.now(mst_tz)
+        timestamp_str = mst_now.strftime("%y:%m:%d %H:%M MST")
+        draw.text((img_width - PADDING, PADDING), timestamp_str, font=timestamp_font, fill=TEXT_COLOR, anchor="ra")
+    except Exception as e:
+        print(f"Warning: Could not generate or draw timestamp. Error: {e}")
+    output_filename = "availability_matrix.png"
+    img.save(output_filename)
+    print(f"\nMatrix image generated and saved as '{output_filename}'")
+
+# --- MAIN ORCHESTRATOR ---
+def main():
+    mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
+    if not (mail_username and mail_password): print("Warning: Email notifications will be skipped.")
+    at_least_one_change = False
+    try:
+        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: ticket_sites = json.load(f)
+        for site in ticket_sites:
+            try:
+                result = process_ticket_details_site(site)
+                if result.get("change_detected"):
+                    at_least_one_change = True
+                    if mail_username and mail_password and result['site_config'].get("email_to"):
+                        s_config = result['site_config']; prev = result['previous_status']; curr = result['current_status']
+                        subject = f"[{s_config['name']}] Hyrox Status Change Detected"
+                        html_body = f"""<html><head><style>body{{font-family:sans-serif;}}pre{{background-color:#f4f4f4;padding:1em;border:1px solid #ddd;border-radius:5px;}}</style></head><body>
+                        <p>A change was detected on <a href="{s_config['url']}">{s_config['name']}</a></p>
+                        <h2>New Status:</h2><pre><code>{json.dumps(curr, indent=2, ensure_ascii=False)}</code></pre><hr>
+                        <h2>Previous Status:</h2><pre><code>{json.dumps(prev, indent=2, ensure_ascii=False)}</code></pre></body></html>"""
+                        send_email(subject, html_body, s_config['email_to'], mail_username, mail_password)
+            except Exception as e: print(f"FATAL ERROR processing site {site.get('name', 'Unknown')}: {e}")
+    except FileNotFoundError: print(f"Info: '{TICKET_DETAILS_CONFIG}' not found, skipping.")
+    except Exception as e: print(f"FATAL ERROR during ticket detail processing: {e}")
+    try:
+        with open(ON_SALE_CONFIG, 'r', encoding='utf-8') as f: on_sale_sites = json.load(f)
+        on_sale_config_updated = False
+        for site in on_sale_sites:
+            try:
+                result = process_on_sale_site(site)
+                if result.get("change_detected"):
+                    at_least_one_change = True; on_sale_config_updated = True
+                    if mail_username and mail_password and result['site_config'].get("email_to"):
+                        s_config = result['site_config']
+                        subject = f"[{s_config['name']}] Hyrox Tickets are ON SALE!"
+                        html_body = f"""<html><body><p>Tickets for <b>{s_config['name']}</b> are now on sale.
+                        <br><br>Check the page here: <a href="{s_config['url']}">{s_config['url']}</a></p></body></html>"""
+                        send_email(subject, html_body, s_config['email_to'], mail_username, mail_password)
+            except Exception as e: print(f"FATAL ERROR processing on-sale site {site.get('name', 'Unknown')}: {e}")
+        if on_sale_config_updated:
+            print(f"Updating '{ON_SALE_CONFIG}' with new 'on_sale' statuses.")
+            with open(ON_SALE_CONFIG, 'w', encoding='utf-8') as f: json.dump(on_sale_sites, f, indent=2, ensure_ascii=False)
+    except FileNotFoundError: print(f"Info: '{ON_SALE_CONFIG}' not found, skipping.")
+    except Exception as e: print(f"FATAL ERROR in on-sale processing: {e}")
+    if at_least_one_change: print("::set-output name=changes_detected::true")
+
+if __name__ == "__main__":
+    if "--matrix" in sys.argv:
+        generate_availability_matrix()
+    else:
+        main()
