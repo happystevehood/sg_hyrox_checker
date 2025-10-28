@@ -8,7 +8,7 @@
       "SUNDAY I 09.11.2025"
     ],
     "status_file": "seoul_nov_25_status.json",
-    "email_to": "",
+    "email_to": "happychildhood@yahoo.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
@@ -24,7 +24,7 @@
       "Sunday"
     ],
     "status_file": "shang_nov_25_status.json",
-    "email_to": "",
+    "email_to": "happychildhood@yahoo.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
@@ -59,7 +59,7 @@
       "Sunday"
     ],
     "status_file": "melb_dec_25_status.json",
-    "email_to": "",
+    "email_to": "happychildhood@yahoo.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
@@ -95,7 +95,7 @@
       "Sunday"
     ],
     "status_file": "osaka_jan_26_status.json",
-    "email_to": "",
+    "email_to": "happychildhood@yahoo.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
@@ -113,7 +113,7 @@
       "Sunday"
     ],
     "status_file": "auck_jan_26_status.json",
-    "email_to": "",
+    "email_to": "happychildhood@yahoo.com",
     "exclude_prefixes": [
         "HYROX ADAPTIVE",
         "CHARITY",
