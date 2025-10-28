@@ -3,38 +3,33 @@
     "found": true,
     "details": [
       {
+        "name": "HYROX DOUBLES MIXED | Saturday",
+        "price": "USD98",
+        "status": "Available"
+      },
+      {
         "name": "HYROX MEN | Saturday",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO WOMEN | Saturday",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO MEN | Saturday",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO DOUBLES WOMEN | Saturday",
-        "price": "N/A",
+        "price": "USD105",
         "status": "Available"
       },
       {
         "name": "HYROX PRO DOUBLES MEN | Saturday",
-        "price": "N/A",
+        "price": "USD98",
         "status": "Available"
       },
       {
-        "name": "HYROX DOUBLES MIXED | Saturday",
-        "price": "N/A",
+        "name": "HYROX PRO DOUBLES WOMEN | Saturday",
+        "price": "USD98",
         "status": "Available"
       },
       {
-        "name": "Spectator | Saturday",
-        "price": "N/A",
+        "name": "HYROX PRO MEN | Saturday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO WOMEN | Saturday",
+        "price": "USD105",
         "status": "Available"
       }
     ]
@@ -43,38 +38,33 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX WOMEN | Sunday",
-        "price": "N/A",
+        "name": "HYROX DOUBLES MEN | Sunday",
+        "price": "USD98",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES WOMEN | Sunday",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX DOUBLES MEN | Sunday",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX WOMEN'S RELAY | Sunday",
-        "price": "N/A",
+        "price": "USD98",
         "status": "Available"
       },
       {
         "name": "HYROX MEN'S RELAY | Sunday",
-        "price": "N/A",
+        "price": "USD61",
         "status": "Available"
       },
       {
         "name": "HYROX MIXED RELAY | Sunday",
-        "price": "N/A",
+        "price": "USD61",
         "status": "Available"
       },
       {
-        "name": "Spectator | Sunday",
-        "price": "N/A",
+        "name": "HYROX WOMEN | Sunday",
+        "price": "USD105",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN'S RELAY | Sunday",
+        "price": "USD61",
         "status": "Available"
       }
     ]

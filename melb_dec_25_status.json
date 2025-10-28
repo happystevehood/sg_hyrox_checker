@@ -4,7 +4,7 @@
     "details": [
       {
         "name": "HYROX MENS RELAY | THURSDAY",
-        "price": "N/A",
+        "price": "AUD160",
         "status": "Available"
       }
     ]
@@ -17,38 +17,38 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO WOMEN | SATURDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO MEN | SATURDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX DOUBLES WOMEN | SATURDAY",
-        "price": "N/A",
+        "name": "HYROX DOUBLES MEN | SATURDAY",
+        "price": "AUD204",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES MIXED | SATURDAY",
-        "price": "N/A",
+        "price": "AUD204",
         "status": "Available"
       },
       {
-        "name": "HYROX DOUBLES MEN | SATURDAY",
-        "price": "N/A",
+        "name": "HYROX DOUBLES WOMEN | SATURDAY",
+        "price": "AUD204",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
+        "price": "AUD204",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
+        "price": "AUD204",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO MEN | SATURDAY",
+        "price": "AUD209",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX PRO WOMEN | SATURDAY",
+        "price": "AUD209",
         "status": "Available"
       }
     ]

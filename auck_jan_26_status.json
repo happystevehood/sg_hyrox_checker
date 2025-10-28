@@ -3,38 +3,38 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX MEN | THURSDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX WOMENS RELAY | THURSDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX MEN'S RELAY | THURSDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX MIXED RELAY | THURSDAY",
-        "price": "N/A",
-        "status": "Available"
-      },
-      {
         "name": "HYROX DOUBLES MEN | THURSDAY",
-        "price": "N/A",
+        "price": "NZD220",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES WOMEN | THURSDAY",
-        "price": "N/A",
+        "price": "NZD220",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN | THURSDAY",
+        "price": "NZD231",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN'S RELAY | THURSDAY",
+        "price": "NZD176",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MIXED RELAY | THURSDAY",
+        "price": "NZD176",
         "status": "Available"
       },
       {
         "name": "HYROX WOMEN | THURSDAY",
-        "price": "N/A",
+        "price": "NZD231",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | THURSDAY",
+        "price": "NZD176",
         "status": "Available"
       }
     ]
@@ -44,12 +44,12 @@
     "details": [
       {
         "name": "HYROX DOUBLES MIXED | FRIDAY",
-        "price": "N/A",
+        "price": "NZD220",
         "status": "Available"
       },
       {
         "name": "HYROX MEN | FRIDAY",
-        "price": "N/A",
+        "price": "NZD231",
         "status": "Available"
       }
     ]
@@ -58,23 +58,23 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
-        "price": "N/A",
+        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
+        "price": "NZD220",
         "status": "Available"
       },
       {
-        "name": "HYROX PRO WOMEN | SATURDAY",
-        "price": "N/A",
+        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
+        "price": "NZD220",
         "status": "Available"
       },
       {
         "name": "HYROX PRO MEN | SATURDAY",
-        "price": "N/A",
+        "price": "NZD231",
         "status": "Available"
       },
       {
-        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
-        "price": "N/A",
+        "name": "HYROX PRO WOMEN | SATURDAY",
+        "price": "NZD231",
         "status": "Available"
       }
     ]
@@ -83,23 +83,23 @@
     "found": true,
     "details": [
       {
-        "name": "HYROX DOUBLES WOMEN | SUNDAY",
-        "price": "N/A",
+        "name": "HYROX DOUBLES MEN | SUNDAY",
+        "price": "NZD220",
         "status": "Available"
       },
       {
         "name": "HYROX DOUBLES MIXED | SUNDAY",
-        "price": "N/A",
+        "price": "NZD220",
         "status": "Available"
       },
       {
-        "name": "HYROX DOUBLES MEN | SUNDAY",
-        "price": "N/A",
+        "name": "HYROX DOUBLES WOMEN | SUNDAY",
+        "price": "NZD220",
         "status": "Available"
       },
       {
         "name": "HYROX WOMEN | SUNDAY",
-        "price": "N/A",
+        "price": "NZD231",
         "status": "Available"
       }
     ]
