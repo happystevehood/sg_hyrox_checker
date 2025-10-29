@@ -5,6 +5,7 @@ import smtplib
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage # --- *** THIS IS THE ONLY CHANGE *** ---
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -20,6 +21,8 @@ import pytz
 # Configuration file names
 TICKET_DETAILS_CONFIG = "config.json"
 ON_SALE_CONFIG = "onsale_config.json"
+MATRIX_STATE_FILE = "matrix_last_state.json"
+MATRIX_OUTPUT_FILE = "availability_matrix.png"
 
 # --- HELPER FUNCTIONS ---
 def setup_driver():
@@ -28,9 +31,15 @@ def setup_driver():
     service = Service()
     return webdriver.Chrome(service=service, options=chrome_options)
 
-def send_email(subject, html_body, recipient_email, mail_username, mail_password):
+def send_email(subject, html_body, recipient_email, mail_username, mail_password, attachment_path=None):
     msg = MIMEMultipart('alternative'); msg['Subject'] = subject; msg['From'] = f"Hyrox Monitor Bot <{mail_username}>"; msg['To'] = recipient_email
     msg.attach(MIMEText(html_body, 'html'))
+    if attachment_path and os.path.exists(attachment_path):
+        with open(attachment_path, 'rb') as f:
+            img = MIMEImage(f.read())
+            img.add_header('Content-ID', '<matrix_image>')
+            msg.attach(img)
+            print(f"Attached image: {attachment_path}")
     try:
         print(f"Connecting to SMTP server for '{subject}'...")
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server: server.login(mail_username, mail_password); server.send_message(msg)
@@ -44,7 +53,17 @@ def normalize_text(text):
 def _normalize_for_matrix(text):
     return text.upper().replace("'", "")
 
-# --- SCRAPER 1: "vivenu_v1" (Updated to remove price) ---
+def _remove_price_for_comparison(status_data):
+    if not status_data: return {}
+    data_copy = json.loads(json.dumps(status_data))
+    for category, data in data_copy.items():
+        if "details" in data and isinstance(data["details"], list):
+            for ticket in data["details"]:
+                if "price" in ticket:
+                    del ticket["price"]
+    return data_copy
+
+# --- SCRAPER 1: "vivenu_v1" ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -80,7 +99,7 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" (Updated to remove price) ---
+# --- SCRAPER 2: "vivenu_v2" ---
 def _process_vivenu_v2(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
@@ -142,8 +161,6 @@ def process_ticket_details_site(site_config):
         print(f"An unexpected error occurred for '{name}': {e}")
     finally:
         driver.quit()
-
-    # Direct comparison now works perfectly as price is no longer a factor.
     if previous_status != current_status and current_status:
         print(f"CHANGE DETECTED for {name}!")
         with open(status_file, 'w', encoding='utf-8') as f: json.dump(current_status, f, indent=2, ensure_ascii=False)
@@ -183,11 +200,16 @@ def generate_availability_matrix():
     FONT_SIZE = 14; AVAILABLE_COLOR = "#77DD77"; UNAVAILABLE_COLOR = "#FF6961"
     GRID_COLOR = "#D3D3D3"; TEXT_COLOR = "#000000"; BG_COLOR = "#FFFFFF"
     try:
-        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: sites = json.load(f)
+        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: config_data = json.load(f)
+        sites = config_data.get("sites", [])
     except FileNotFoundError:
         print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
+    try:
+        with open(MATRIX_STATE_FILE, 'r', encoding='utf-8') as f: previous_matrix_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous_matrix_data = {}
     site_names = [site['name'] for site in sites]
-    matrix_data = {name: {cat: False for cat in DISPLAY_CATEGORIES} for name in site_names}
+    current_matrix_data = {name: {cat: False for cat in DISPLAY_CATEGORIES} for name in site_names}
     for site in sites:
         site_name, status_file = site['name'], site['status_file']
         try:
@@ -198,9 +220,8 @@ def generate_availability_matrix():
                     ticket_name = ticket.get("name", "")
                     normalized_ticket_name = _normalize_for_matrix(ticket_name)
                     for cat_to_check in MATCHING_CATEGORIES:
-                        normalized_cat_to_check = _normalize_for_matrix(cat_to_check)
-                        if normalized_cat_to_check in normalized_ticket_name:
-                            matrix_data[site_name][cat_to_check] = True
+                        if _normalize_for_matrix(cat_to_check) in normalized_ticket_name:
+                            current_matrix_data[site_name][cat_to_check] = True
                             break
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Warning: Could not process '{status_file}' for '{site_name}'. Reason: {e}")
@@ -209,8 +230,9 @@ def generate_availability_matrix():
     try:
         font = ImageFont.truetype("arial.ttf", FONT_SIZE)
         timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
+        cross_font = ImageFont.truetype("arialbd.ttf", FONT_SIZE + 4)
     except IOError:
-        print("Warning: Arial font not found. Using default font."); font = ImageFont.load_default(); timestamp_font = font
+        print("Warning: Arial fonts not found. Using default fonts."); font = ImageFont.load_default(); timestamp_font = font; cross_font = font
     img = Image.new('RGB', (img_width, img_height), BG_COLOR)
     draw = ImageDraw.Draw(img)
     for i, name in enumerate(site_names):
@@ -226,19 +248,44 @@ def generate_availability_matrix():
         y1 = COL_HEADER_HEIGHT + (row_idx * CELL_SIZE) + PADDING; y2 = y1 + CELL_SIZE
         for col_idx, site_name in enumerate(site_names):
             x1 = ROW_HEADER_WIDTH + (col_idx * CELL_SIZE) + PADDING; x2 = x1 + CELL_SIZE
-            is_available = matrix_data[site_name][category]
-            color = AVAILABLE_COLOR if is_available else UNAVAILABLE_COLOR
+            current_available = current_matrix_data.get(site_name, {}).get(category, False)
+            previous_available = previous_matrix_data.get(site_name, {}).get(category, False)
+            color = AVAILABLE_COLOR if current_available else UNAVAILABLE_COLOR
             draw.rectangle([x1, y1, x2, y2], fill=color, outline=GRID_COLOR)
+            if current_available != previous_available:
+                draw.text((x1 + CELL_SIZE / 2, y1 + CELL_SIZE / 2), "X", font=cross_font, fill=TEXT_COLOR, anchor="mm")
     try:
         mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
         mst_now = datetime.now(mst_tz)
         timestamp_str = mst_now.strftime("%y:%m:%d %H:%M MST")
         draw.text((img_width - PADDING, PADDING), timestamp_str, font=timestamp_font, fill=TEXT_COLOR, anchor="ra")
-    except Exception as e:
-        print(f"Warning: Could not generate or draw timestamp. Error: {e}")
-    output_filename = "availability_matrix.png"
-    img.save(output_filename)
-    print(f"\nMatrix image generated and saved as '{output_filename}'")
+    except Exception as e: print(f"Warning: Could not draw timestamp. Error: {e}")
+    img.save(MATRIX_OUTPUT_FILE)
+    print(f"\nMatrix image generated and saved as '{MATRIX_OUTPUT_FILE}'")
+    with open(MATRIX_STATE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(current_matrix_data, f, indent=2)
+    print(f"Updated matrix state file: '{MATRIX_STATE_FILE}'")
+
+def email_matrix():
+    print("Preparing to email the matrix report...")
+    mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
+    if not (mail_username and mail_password):
+        print("Error: Email credentials not set. Cannot send matrix."); return
+    try:
+        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f:
+            config_data = json.load(f)
+            recipient_email = config_data.get("matrix_email_to")
+    except (FileNotFoundError, KeyError):
+        print(f"Error: Could not find 'matrix_email_to' key in '{TICKET_DETAILS_CONFIG}'."); return
+    if not recipient_email:
+        print("No recipient email specified for matrix report. Skipping email."); return
+    mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    subject = f"Hyrox Daily Availability Matrix - {datetime.now(mst_tz).strftime('%Y-%m-%d')}"
+    body = """<html><body>
+      <p>Here is the daily Hyrox availability matrix report.</p>
+      <p><img src="cid:matrix_image"></p>
+    </body></html>"""
+    send_email(subject, body, recipient_email, mail_username, mail_password, attachment_path=MATRIX_OUTPUT_FILE)
 
 # --- MAIN ORCHESTRATOR ---
 def main():
@@ -246,7 +293,7 @@ def main():
     if not (mail_username and mail_password): print("Warning: Email notifications will be skipped.")
     at_least_one_change = False
     try:
-        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: ticket_sites = json.load(f)
+        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: ticket_sites = json.load(f)["sites"]
         for site in ticket_sites:
             try:
                 result = process_ticket_details_site(site)
@@ -261,7 +308,7 @@ def main():
                         <h2>Previous Status:</h2><pre><code>{json.dumps(prev, indent=2, ensure_ascii=False)}</code></pre></body></html>"""
                         send_email(subject, html_body, s_config['email_to'], mail_username, mail_password)
             except Exception as e: print(f"FATAL ERROR processing site {site.get('name', 'Unknown')}: {e}")
-    except FileNotFoundError: print(f"Info: '{TICKET_DETAILS_CONFIG}' not found, skipping.")
+    except (FileNotFoundError, KeyError): print(f"Info: '{TICKET_DETAILS_CONFIG}' not found or malformed, skipping.")
     except Exception as e: print(f"FATAL ERROR during ticket detail processing: {e}")
     try:
         with open(ON_SALE_CONFIG, 'r', encoding='utf-8') as f: on_sale_sites = json.load(f)
@@ -288,5 +335,7 @@ def main():
 if __name__ == "__main__":
     if "--matrix" in sys.argv:
         generate_availability_matrix()
+    elif "--email-matrix" in sys.argv:
+        email_matrix()
     else:
         main()

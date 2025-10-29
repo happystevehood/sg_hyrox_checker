@@ -1,138 +1,141 @@
-[
-  {
-    "name": "Seoul Nov '25",
-    "site_type": "vivenu_v1",
-    "url": "https://korea.hyrox.com/checkout/682c8c9b34f0b450da0e3bb9",
-    "keywords": [
-      "SATURDAY I 08.11.2025",
-      "SUNDAY I 09.11.2025"
-    ],
-    "status_file": "seoul_nov_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "Spectator"
-    ]
-  },
-  {
-    "name": "Shanghai Nov '25",
-    "site_type": "vivenu_v2",
-    "url": "https://china.hyrox.com/event/hyrox-shanghai-season-25-26-tf78w3",
-    "keywords": [
-      "Saturday",
-      "Sunday"
-    ],
-    "status_file": "shang_nov_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "Spectator"
-    ]
-  },
-  {
-    "name": "SG Nov '25",
-    "site_type": "vivenu_v1",
-    "url": "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs",
-    "keywords": [
-      "SATURDAY | 29.11.2025",
-      "SUNDAY | 30.11.2025"
-    ],
-    "status_file": "sing_nov_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "Spectator",
-        "SATURDAY | CORPORATE RELAY"
-    ]
-  },
-  {
-    "name": "Melbourne Dec '25",
-    "site_type": "vivenu_v2",
-    "url": "https://australia.hyrox.com/event/hyrox-melbourne-season-25-26-m7fno3",
-    "keywords": [
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "status_file": "melb_dec_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "SPECTATOR",
-        "HYATT"
-    ]
-  },
-  {
-    "name": "Shenzen Dec '25",
-    "site_type": "vivenu_v2",
-    "url": "https://china.hyrox.com/event/hyrox-shenzhen-season-25-26-dv8a0g",
-    "keywords": [
-      "Saturday",
-      "Sunday"
-    ],
-    "status_file": "shenzen_dec_25_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "SPECTATOR",
-        "HYATT",
-        "Spectator"
-    ]
-  },  
-  {
-    "name": "Osaka Jan '26",
-    "site_type": "vivenu_v2",
-    "url": "https://japan.hyrox.com/event/hyrox-osaka-season-25-26-cu5rx5",
-    "keywords": [
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "status_file": "osaka_jan_26_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "SPECTATOR"
-    ]
-  },
-  {
-    "name": "Auckland Jan '26",
-    "site_type": "vivenu_v2",
-    "url": "https://newzealand.hyrox.com/event/hyrox-new-zealand-season-25-26-nstacp",
-    "keywords": [
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "status_file": "auck_jan_26_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "SPECTATOR"
-    ]
-  },
-  {
-    "name": "Tapei Feb '26",
-    "site_type": "vivenu_v2",
-    "url": "https://tw.hyrox.com/event/hyrox-taipei-season-25-26-ipsywf",
-    "keywords": [
-      "HYROX"
-    ],
-    "status_file": "taipei_feb_26_status.json",
-    "email_to": "happychildhood@yahoo.com",
-    "exclude_prefixes": [
-        "HYROX ADAPTIVE",
-        "CHARITY",
-        "SPECTATOR"
-    ]
-  }
-]
+{
+  "matrix_email_to": "happychildhood@yahoo.com",
+  "sites": [
+    {
+      "name": "Seoul Nov '25",
+      "site_type": "vivenu_v1",
+      "url": "https://korea.hyrox.com/checkout/682c8c9b34f0b450da0e3bb9",
+      "keywords": [
+        "SATURDAY I 08.11.2025",
+        "SUNDAY I 09.11.2025"
+      ],
+      "status_file": "seoul_nov_25_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator"
+      ]
+    },
+    {
+      "name": "Shanghai Nov '25",
+      "site_type": "vivenu_v2",
+      "url": "https://china.hyrox.com/event/hyrox-shanghai-season-25-26-tf78w3",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "shang_nov_25_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator"
+      ]
+    },
+    {
+      "name": "SG Nov '25",
+      "site_type": "vivenu_v1",
+      "url": "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs",
+      "keywords": [
+        "SATURDAY | 29.11.2025",
+        "SUNDAY | 30.11.2025"
+      ],
+      "status_file": "sing_nov_25_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator",
+          "SATURDAY | CORPORATE RELAY"
+      ]
+    },
+    {
+      "name": "Melbourne Dec '25",
+      "site_type": "vivenu_v2",
+      "url": "https://australia.hyrox.com/event/hyrox-melbourne-season-25-26-m7fno3",
+      "keywords": [
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "melb_dec_25_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR",
+          "HYATT"
+      ]
+    },
+    {
+      "name": "Shenzen Dec '25",
+      "site_type": "vivenu_v2",
+      "url": "https://china.hyrox.com/event/hyrox-shenzhen-season-25-26-dv8a0g",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "shenzen_dec_25_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR",
+          "HYATT",
+          "Spectator"
+      ]
+    },  
+    {
+      "name": "Osaka Jan '26",
+      "site_type": "vivenu_v2",
+      "url": "https://japan.hyrox.com/event/hyrox-osaka-season-25-26-cu5rx5",
+      "keywords": [
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "osaka_jan_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
+    },
+    {
+      "name": "Auckland Jan '26",
+      "site_type": "vivenu_v2",
+      "url": "https://newzealand.hyrox.com/event/hyrox-new-zealand-season-25-26-nstacp",
+      "keywords": [
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "auck_jan_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
+    },
+    {
+      "name": "Tapei Feb '26",
+      "site_type": "vivenu_v2",
+      "url": "https://tw.hyrox.com/event/hyrox-taipei-season-25-26-ipsywf",
+      "keywords": [
+        "HYROX"
+      ],
+      "status_file": "taipei_feb_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
+    }
+  ]
+}
