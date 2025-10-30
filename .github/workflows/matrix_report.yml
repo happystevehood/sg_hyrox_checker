@@ -3,7 +3,7 @@ name: Generate Daily Availability Matrix Report
 on:
   schedule:
     # Runs once a day, late in the evening (e.g., 21:00 UTC)
-    - cron: '0 21 * * *'
+    - cron: '0 13 * * *'
   workflow_dispatch: # Allows manual runs
 
 jobs:
