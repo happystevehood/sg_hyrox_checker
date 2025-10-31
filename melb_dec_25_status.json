@@ -1,15 +1,65 @@
 {
   "Thursday": {
     "found": true,
-    "details": []
+    "details": [
+      {
+        "name": "HYROX DOUBLES MEN | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MENS RELAY | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MIXED RELAY | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN | THURSDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMENS RELAY | THURSDAY",
+        "status": "Available"
+      }
+    ]
   },
   "Friday": {
     "found": true,
-    "details": []
+    "details": [
+      {
+        "name": "HYROX DOUBLES MIXED | FRIDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX MEN | FRIDAY",
+        "status": "Available"
+      }
+    ]
   },
   "Saturday": {
     "found": true,
     "details": [
+      {
+        "name": "HYROX DOUBLES MEN | SATURDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | SATURDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | SATURDAY",
+        "status": "Available"
+      },
       {
         "name": "HYROX PRO DOUBLES MEN | SATURDAY",
         "status": "Available"
@@ -30,6 +80,23 @@
   },
   "Sunday": {
     "found": true,
-    "details": []
+    "details": [
+      {
+        "name": "HYROX DOUBLES MEN | SUNDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | SUNDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX DOUBLES WOMEN | SUNDAY",
+        "status": "Available"
+      },
+      {
+        "name": "HYROX WOMEN | SUNDAY",
+        "status": "Available"
+      }
+    ]
   }
 }
