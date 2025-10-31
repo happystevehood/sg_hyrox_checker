@@ -1,12 +1,7 @@
 {
   "Thursday": {
     "found": true,
-    "details": [
-      {
-        "name": "HYROX MENS RELAY | THURSDAY",
-        "status": "Available"
-      }
-    ]
+    "details": []
   },
   "Friday": {
     "found": true,
@@ -15,18 +10,6 @@
   "Saturday": {
     "found": true,
     "details": [
-      {
-        "name": "HYROX DOUBLES MEN | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX DOUBLES MIXED | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX DOUBLES WOMEN | SATURDAY",
-        "status": "Available"
-      },
       {
         "name": "HYROX PRO DOUBLES MEN | SATURDAY",
         "status": "Available"
