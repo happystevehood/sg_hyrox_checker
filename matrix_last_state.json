@@ -1,9 +1,9 @@
 {
   "Seoul Nov '25": {
     "HYROX PRO WOMEN": true,
-    "HYROX PRO MEN": true,
+    "HYROX PRO MEN": false,
     "HYROX WOMEN": true,
-    "HYROX MEN": true,
+    "HYROX MEN": false,
     "HYROX PRO DOUBLES WOMEN": true,
     "HYROX PRO DOUBLES MEN": false,
     "HYROX DOUBLES WOMEN": true,
