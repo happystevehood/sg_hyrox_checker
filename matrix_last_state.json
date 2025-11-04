@@ -1,7 +1,7 @@
 {
   "Seoul Nov '25": {
     "HYROX PRO WOMEN": true,
-    "HYROX PRO MEN": true,
+    "HYROX PRO MEN": false,
     "HYROX WOMEN": true,
     "HYROX MEN": false,
     "HYROX PRO DOUBLES WOMEN": true,
@@ -11,7 +11,7 @@
     "HYROX DOUBLES MEN": false,
     "HYROX WOMENS RELAY": true,
     "HYROX MENS RELAY": true,
-    "HYROX MIXED RELAY": true
+    "HYROX MIXED RELAY": false
   },
   "Shanghai Nov '25": {
     "HYROX PRO WOMEN": true,
