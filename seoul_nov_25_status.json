@@ -7,6 +7,10 @@
         "status": "Available"
       },
       {
+        "name": "HYROX PRO DOUBLES MEN | HYROX    | SATURDAY",
+        "status": "Available"
+      },
+      {
         "name": "HYROX PRO DOUBLES WOMEN | HYROX    | SATURDAY",
         "status": "Available"
       },
@@ -23,6 +27,10 @@
   "SUNDAY I 09.11.2025": {
     "found": true,
     "details": [
+      {
+        "name": "HYROX DOUBLES MEN | HYROX   | SUNDAY",
+        "status": "Available"
+      },
       {
         "name": "HYROX DOUBLES WOMEN | HYROX   | SUNDAY",
         "status": "Available"
