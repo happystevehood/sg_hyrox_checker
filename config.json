@@ -136,6 +136,24 @@
           "CHARITY",
           "SPECTATOR"
       ]
+    },
+    {
+      "name": "Bangkok MAr '26",
+      "site_type": "vivenu_v2",
+      "url": "https://thailand.hyrox.com/event/hyrox-bangkok-season-25-26-j33lis",
+      "keywords": [
+        "Friday",
+        "Saturday",
+        "Sunday",
+        "Monday"
+      ],
+      "status_file": "bangkok_mar_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
     }
   ]
 }
