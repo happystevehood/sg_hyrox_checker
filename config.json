@@ -1,23 +1,7 @@
 {
   "matrix_email_to": "happychildhood@yahoo.com",
   "sites": [
-    {
-      "name": "Seoul Nov '25",
-      "site_type": "vivenu_v1",
-      "url": "https://korea.hyrox.com/checkout/682c8c9b34f0b450da0e3bb9",
-      "keywords": [
-        "SATURDAY I 08.11.2025",
-        "SUNDAY I 09.11.2025"
-      ],
-      "status_file": "seoul_nov_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
-      "exclude_prefixes": [
-          "HYROX ADAPTIVE",
-          "CHARITY",
-          "Spectator"
-      ]
-    },
-    {
+   {
       "name": "Shanghai Nov '25",
       "site_type": "vivenu_v2",
       "url": "https://china.hyrox.com/event/hyrox-shanghai-season-25-26-tf78w3",
@@ -26,7 +10,7 @@
         "Sunday"
       ],
       "status_file": "shang_nov_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -42,7 +26,7 @@
         "SUNDAY | 30.11.2025"
       ],
       "status_file": "sing_nov_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -61,7 +45,7 @@
         "Sunday"
       ],
       "status_file": "melb_dec_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -78,7 +62,7 @@
         "Sunday"
       ],
       "status_file": "shenzen_dec_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -97,7 +81,7 @@
         "Sunday"
       ],
       "status_file": "osaka_jan_26_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -115,7 +99,7 @@
         "Sunday"
       ],
       "status_file": "auck_jan_26_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -130,7 +114,7 @@
         "HYROX"
       ],
       "status_file": "taipei_feb_26_status.json",
-      "email_to": "happychildhood@yahoo.com",
+      "email_to": "",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
@@ -152,6 +136,24 @@
           "HYROX ADAPTIVE",
           "CHARITY",
           "SPECTATOR"
+      ]
+    }
+  ],
+  "old_sites": [
+    {
+      "name": "Seoul Nov '25",
+      "site_type": "vivenu_v1",
+      "url": "https://korea.hyrox.com/checkout/682c8c9b34f0b450da0e3bb9",
+      "keywords": [
+        "SATURDAY I 08.11.2025",
+        "SUNDAY I 09.11.2025"
+      ],
+      "status_file": "seoul_nov_25_status.json",
+      "email_to": "",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator"
       ]
     }
   ]
