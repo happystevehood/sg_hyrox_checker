@@ -36,6 +36,10 @@
     "found": true,
     "details": [
       {
+        "name": "ELITE SPECTATOR | FRIDAY",
+        "status": "Available"
+      },
+      {
         "name": "HYROX DOUBLES MIXED | FRIDAY",
         "status": "Available"
       },
@@ -48,6 +52,10 @@
   "Saturday": {
     "found": true,
     "details": [
+      {
+        "name": "ELITE SPECTATOR | SATURDAY",
+        "status": "Available"
+      },
       {
         "name": "HYROX DOUBLES MEN | SATURDAY",
         "status": "Available"
