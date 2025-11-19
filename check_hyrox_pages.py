@@ -24,8 +24,7 @@ ON_SALE_CONFIG = "onsale_config.json"
 MATRIX_STATE_FILE = "matrix_last_state.json"
 MATRIX_OUTPUT_FILE = "availability_matrix.png"
 
-# --- HELPER, SCRAPER, and MONITORING FUNCTIONS (No changes) ---
-# ... (All functions from setup_driver down to process_on_sale_site are identical) ...
+# --- HELPER FUNCTIONS ---
 def setup_driver():
     chrome_options = Options(); chrome_options.add_argument("--headless"); chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage"); chrome_options.add_argument("--window-size=1920,1080")
@@ -54,16 +53,17 @@ def normalize_text(text):
 def _normalize_for_matrix(text):
     return text.upper().replace("'", "")
 
-def _remove_price_for_comparison(status_data):
-    if not status_data: return {}
-    data_copy = json.loads(json.dumps(status_data))
-    for category, data in data_copy.items():
-        if "details" in data and isinstance(data["details"], list):
-            for ticket in data["details"]:
-                if "price" in ticket:
-                    del ticket["price"]
-    return data_copy
+# --- *** NEW: Future-proof function to set GitHub Actions outputs *** ---
+def set_github_output(name, value):
+    """Sets an output variable for the GitHub Actions workflow using the new environment file method."""
+    github_output_path = os.getenv('GITHUB_OUTPUT')
+    if github_output_path:
+        with open(github_output_path, 'a') as f:
+            f.write(f'{name}={value}\n')
+    else:
+        print(f"Local run: Would set GITHUB_OUTPUT '{name}' to '{value}'")
 
+# --- SCRAPERS and PROCESSORS (No changes) ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -183,7 +183,6 @@ def process_on_sale_site(site_config):
     else:
         print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
 
-# --- GRAPHICAL MATRIX GENERATION (Updated to control email sending) ---
 def generate_availability_matrix():
     print("Generating graphical availability matrix with change detection...")
     matrix_has_changed = False
@@ -221,8 +220,6 @@ def generate_availability_matrix():
                             break
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Warning: Could not process '{status_file}' for '{site_name}'. Reason: {e}")
-
-    # --- Image Generation ---
     img_width = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
     img_height = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
     try:
@@ -256,8 +253,6 @@ def generate_availability_matrix():
     except Exception as e: print(f"Warning: Could not draw timestamp. Error: {e}")
     img.save(MATRIX_OUTPUT_FILE)
     print(f"\nMatrix image generated and saved as '{MATRIX_OUTPUT_FILE}'")
-
-    # --- Compare and save state ---
     if current_matrix_data != previous_matrix_data:
         print("Matrix has changed since the last run.")
         matrix_has_changed = True
@@ -267,24 +262,19 @@ def generate_availability_matrix():
     else:
         print("No changes detected in the matrix.")
         matrix_has_changed = False
-    
-    # --- Set GitHub Actions output ---
-    print(f"::set-output name=matrix_changed::{str(matrix_has_changed).lower()}")
-
+    set_github_output('matrix_changed', str(matrix_has_changed).lower())
 
 def email_matrix():
     print("Preparing to email the matrix report...")
     mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
-    if not (mail_username and mail_password):
-        print("Error: Email credentials not set. Cannot send matrix."); return
+    if not (mail_username and mail_password): print("Error: Email credentials not set. Cannot send matrix."); return
     try:
         with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
             recipient_email = config_data.get("matrix_email_to")
     except (FileNotFoundError, KeyError):
         print(f"Error: Could not find 'matrix_email_to' key in '{TICKET_DETAILS_CONFIG}'."); return
-    if not recipient_email:
-        print("No recipient email specified for matrix report. Skipping email."); return
+    if not recipient_email: print("No recipient email specified for matrix report. Skipping email."); return
     mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
     subject = f"Hyrox Daily Availability Matrix - {datetime.now(mst_tz).strftime('%Y-%m-%d')}"
     body = """<html><body><p>Here is the daily Hyrox availability matrix report.</p><p><img src="cid:matrix_image"></p></body></html>"""
@@ -333,7 +323,9 @@ def main():
             with open(ON_SALE_CONFIG, 'w', encoding='utf-8') as f: json.dump(on_sale_sites, f, indent=2, ensure_ascii=False)
     except FileNotFoundError: print(f"Info: '{ON_SALE_CONFIG}' not found, skipping.")
     except Exception as e: print(f"FATAL ERROR in on-sale processing: {e}")
-    if at_least_one_change: print("::set-output name=changes_detected::true")
+    
+    if at_least_one_change:
+        set_github_output('changes_detected', 'true')
 
 if __name__ == "__main__":
     if "--matrix" in sys.argv:
