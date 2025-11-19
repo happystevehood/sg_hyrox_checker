@@ -20,25 +20,26 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Setup Chrome
-        uses: browser-actions/setup-chrome@v1
-
       - name: Install Python dependencies
         run: pip install selenium Pillow pytz
 
+      # --- CHANGE 1: Add an 'id' to this step ---
       - name: Generate Matrix Image (with change detection)
+        id: generate_matrix
         run: python -u check_hyrox_pages.py --matrix
       
+      # --- CHANGE 2: Add an 'if' condition to this step ---
       - name: Email the Matrix Image
+        if: steps.generate_matrix.outputs.matrix_changed == 'true'
         env:
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: python -u check_hyrox_pages.py --email-matrix
 
-      # Commit the new matrix state file for the next day's comparison
+      # This commit step is now also implicitly conditional, as the python script
+      # will only update the state file if a change is detected.
       - name: Commit and push matrix state file
         run: |
-          # Check if the state file was actually modified
           if [[ `git status --porcelain matrix_last_state.json` ]]; then
             git config --global user.name 'github-actions[bot]'
             git config --global user.email 'github-actions[bot]@users.noreply.github.com'
