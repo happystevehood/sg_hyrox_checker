@@ -5,7 +5,7 @@ import smtplib
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.image import MIMEImage # --- *** THIS IS THE ONLY CHANGE *** ---
+from email.mime.image import MIMEImage
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -24,7 +24,8 @@ ON_SALE_CONFIG = "onsale_config.json"
 MATRIX_STATE_FILE = "matrix_last_state.json"
 MATRIX_OUTPUT_FILE = "availability_matrix.png"
 
-# --- HELPER FUNCTIONS ---
+# --- HELPER, SCRAPER, and MONITORING FUNCTIONS (No changes) ---
+# ... (All functions from setup_driver down to process_on_sale_site are identical) ...
 def setup_driver():
     chrome_options = Options(); chrome_options.add_argument("--headless"); chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage"); chrome_options.add_argument("--window-size=1920,1080")
@@ -63,7 +64,6 @@ def _remove_price_for_comparison(status_data):
                     del ticket["price"]
     return data_copy
 
-# --- SCRAPER 1: "vivenu_v1" ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -99,7 +99,6 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" ---
 def _process_vivenu_v2(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
@@ -137,7 +136,6 @@ def _process_vivenu_v2(site_config, driver):
             category_data['details'].sort(key=lambda x: x['name'])
     return current_status
 
-# --- MAIN ROUTER & PROCESSOR ---
 def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
@@ -169,7 +167,6 @@ def process_ticket_details_site(site_config):
     else:
         print(f"No changes detected for {name}."); return {"change_detected": False}
 
-# --- ON-SALE PROCESSOR ---
 def process_on_sale_site(site_config):
     name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
     print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
@@ -186,9 +183,10 @@ def process_on_sale_site(site_config):
     else:
         print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
 
-# --- GRAPHICAL MATRIX GENERATION ---
+# --- GRAPHICAL MATRIX GENERATION (Updated to control email sending) ---
 def generate_availability_matrix():
-    print("Generating graphical availability matrix...")
+    print("Generating graphical availability matrix with change detection...")
+    matrix_has_changed = False
     DISPLAY_CATEGORIES = [
         "HYROX PRO WOMEN", "HYROX PRO MEN", "HYROX WOMEN", "HYROX MEN",
         "HYROX PRO DOUBLES WOMEN", "HYROX PRO DOUBLES MEN",
@@ -202,12 +200,10 @@ def generate_availability_matrix():
     try:
         with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: config_data = json.load(f)
         sites = config_data.get("sites", [])
-    except FileNotFoundError:
-        print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
+    except FileNotFoundError: print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
     try:
         with open(MATRIX_STATE_FILE, 'r', encoding='utf-8') as f: previous_matrix_data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        previous_matrix_data = {}
+    except (FileNotFoundError, json.JSONDecodeError): previous_matrix_data = {}
     site_names = [site['name'] for site in sites]
     current_matrix_data = {name: {cat: False for cat in DISPLAY_CATEGORIES} for name in site_names}
     for site in sites:
@@ -225,21 +221,20 @@ def generate_availability_matrix():
                             break
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Warning: Could not process '{status_file}' for '{site_name}'. Reason: {e}")
+
+    # --- Image Generation ---
     img_width = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
     img_height = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
     try:
-        font = ImageFont.truetype("arial.ttf", FONT_SIZE)
-        timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
+        font = ImageFont.truetype("arial.ttf", FONT_SIZE); timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
         cross_font = ImageFont.truetype("arialbd.ttf", FONT_SIZE + 4)
     except IOError:
         print("Warning: Arial fonts not found. Using default fonts."); font = ImageFont.load_default(); timestamp_font = font; cross_font = font
-    img = Image.new('RGB', (img_width, img_height), BG_COLOR)
-    draw = ImageDraw.Draw(img)
+    img = Image.new('RGB', (img_width, img_height), BG_COLOR); draw = ImageDraw.Draw(img)
     for i, name in enumerate(site_names):
         x = ROW_HEADER_WIDTH + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING; y = COL_HEADER_HEIGHT - 10 + PADDING
         txt = Image.new('L', (COL_HEADER_HEIGHT, FONT_SIZE + 10)); d = ImageDraw.Draw(txt)
-        d.text((0, 0), name, font=font, fill=255)
-        w = txt.rotate(90, expand=1)
+        d.text((0, 0), name, font=font, fill=255); w = txt.rotate(90, expand=1)
         img.paste(TEXT_COLOR, (int(x - w.size[0]/2), int(y - w.size[1])), w)
     for i, category in enumerate(DISPLAY_CATEGORIES):
         x = PADDING; y = COL_HEADER_HEIGHT + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING
@@ -255,16 +250,27 @@ def generate_availability_matrix():
             if current_available != previous_available:
                 draw.text((x1 + CELL_SIZE / 2, y1 + CELL_SIZE / 2), "X", font=cross_font, fill=TEXT_COLOR, anchor="mm")
     try:
-        mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
-        mst_now = datetime.now(mst_tz)
+        mst_tz = pytz.timezone('Asia/Kuala_Lumpur'); mst_now = datetime.now(mst_tz)
         timestamp_str = mst_now.strftime("%y:%m:%d %H:%M MST")
         draw.text((img_width - PADDING, PADDING), timestamp_str, font=timestamp_font, fill=TEXT_COLOR, anchor="ra")
     except Exception as e: print(f"Warning: Could not draw timestamp. Error: {e}")
     img.save(MATRIX_OUTPUT_FILE)
     print(f"\nMatrix image generated and saved as '{MATRIX_OUTPUT_FILE}'")
-    with open(MATRIX_STATE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(current_matrix_data, f, indent=2)
-    print(f"Updated matrix state file: '{MATRIX_STATE_FILE}'")
+
+    # --- Compare and save state ---
+    if current_matrix_data != previous_matrix_data:
+        print("Matrix has changed since the last run.")
+        matrix_has_changed = True
+        with open(MATRIX_STATE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(current_matrix_data, f, indent=2)
+        print(f"Updated matrix state file: '{MATRIX_STATE_FILE}'")
+    else:
+        print("No changes detected in the matrix.")
+        matrix_has_changed = False
+    
+    # --- Set GitHub Actions output ---
+    print(f"::set-output name=matrix_changed::{str(matrix_has_changed).lower()}")
+
 
 def email_matrix():
     print("Preparing to email the matrix report...")
@@ -281,10 +287,7 @@ def email_matrix():
         print("No recipient email specified for matrix report. Skipping email."); return
     mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
     subject = f"Hyrox Daily Availability Matrix - {datetime.now(mst_tz).strftime('%Y-%m-%d')}"
-    body = """<html><body>
-      <p>Here is the daily Hyrox availability matrix report.</p>
-      <p><img src="cid:matrix_image"></p>
-    </body></html>"""
+    body = """<html><body><p>Here is the daily Hyrox availability matrix report.</p><p><img src="cid:matrix_image"></p></body></html>"""
     send_email(subject, body, recipient_email, mail_username, mail_password, attachment_path=MATRIX_OUTPUT_FILE)
 
 # --- MAIN ORCHESTRATOR ---
