@@ -1,52 +1,18 @@
 {
   "SATURDAY | 29.11.2025": {
-    "found": true,
-    "details": [
-      {
-        "name": "HYROX DOUBLES MIXED | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX MEN | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO DOUBLES MEN | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO DOUBLES WOMEN | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO MEN | SATURDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX PRO WOMEN | SATURDAY",
-        "status": "Available"
-      }
-    ]
+    "found": false,
+    "details": []
   },
   "SUNDAY | 30.11.2025": {
     "found": true,
     "details": [
       {
-        "name": "HYROX DOUBLES WOMEN | SUNDAY",
-        "status": "Available"
-      },
-      {
         "name": "HYROX WOMEN | SUNDAY",
-        "status": "Available"
-      },
-      {
-        "name": "HYROX WOMENS RELAY | SUNDAY",
         "status": "Available"
       }
     ]
   },
   "unmatched_categories": [
-    "SATURDAY | CORPORATE RELAY | 29.11.2025",
     "Spectator"
   ]
 }
