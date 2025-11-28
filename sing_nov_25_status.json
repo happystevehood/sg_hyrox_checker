@@ -4,13 +4,8 @@
     "details": []
   },
   "SUNDAY | 30.11.2025": {
-    "found": true,
-    "details": [
-      {
-        "name": "HYROX WOMEN | SUNDAY",
-        "status": "Available"
-      }
-    ]
+    "found": false,
+    "details": []
   },
   "unmatched_categories": [
     "Spectator"
