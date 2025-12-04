@@ -135,7 +135,8 @@
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
-          "SPECTATOR"
+          "SPECTATOR",
+          "Spectator"
       ]
     }
   ],
