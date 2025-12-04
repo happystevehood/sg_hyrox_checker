@@ -89,52 +89,52 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" (Completely Rewritten for Reliability) ---
+# --- SCRAPER 2: "vivenu_v2" (Restored Robust Fallback Logic) ---
 def _process_vivenu_v2(site_config, driver):
-    keywords = site_config['keywords']
-    exclude_prefixes = site_config.get("exclude_prefixes", [])
+    keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 15)
+    json_data = None
+    try:
+        # Attempt 1: Fast path, find data on initial load
+        print("Attempting fast scrape...")
+        script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
+        json_data = json.loads(script_element.get_attribute("textContent"))
+        print("Fast scrape successful.")
+    except TimeoutException:
+        # Attempt 2: Fallback, click button then navigate
+        print("Fallback: Clicking 'Buy tickets' to load data...")
+        wait = WebDriverWait(driver, 20) # Reset to a longer wait for the next steps
+        buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
+        driver.execute_script("arguments[0].click();", buy_button)
+        time.sleep(3) # Wait for JS to populate the object tag
+        object_element = wait.until(EC.presence_of_element_located((By.ID, "sellmodal-anchor")))
+        checkout_path = object_element.get_attribute("data")
+        if not checkout_path: raise Exception("Could not find checkout path in object tag.")
+        checkout_url = urljoin(driver.current_url, checkout_path)
+        print(f"Navigating directly to checkout URL: {checkout_url}")
+        driver.get(checkout_url)
+        script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
+        json_data = json.loads(script_element.get_attribute("textContent"))
+        print("Fallback scrape successful.")
 
-    # 1. Click the initial "Buy tickets" button on the main page
-    buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
-    driver.execute_script("arguments[0].click();", buy_button)
-    
-    # 2. Wait for the iframe to be available and switch the driver's context to it
-    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sellmodal-anchor")))
-    
-    # 3. Now inside the iframe, wait for the ticket elements to be visible
-    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "ticket-type")))
-    ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
-    
-    for ticket in ticket_elements:
-        try:
-            # 4. Check for the "sold-out" class, just like in the v1 scraper
-            status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
-            if status == "Sold out":
-                continue
-
-            clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
-            if any(clean_name.startswith(prefix) for prefix in exclude_prefixes):
-                continue
-            
-            # Categorize the ticket by day/keyword
-            for keyword in keywords:
-                if keyword.lower() in clean_name.lower():
-                    current_status[keyword]["details"].append({"name": clean_name, "status": status})
-                    break # Stop after finding the first match
-        except Exception:
-            continue # Ignore any malformed ticket elements
-
-    # 5. Sort the details for consistency
+    tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
+    for ticket in tickets_list:
+        status = "Available" if ticket.get("active") else "Sold out"
+        if status == "Sold out": continue
+        clean_name = normalize_text(ticket.get("name", ""))
+        if ticket.get("styleOptions", {}).get("hiddenInSelectionArea"): continue
+        if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
+        for keyword in keywords:
+            if keyword.lower() in clean_name.lower():
+                current_status[keyword]["details"].append({"name": clean_name, "status": status})
+                break
     for category_data in current_status.values():
         if "details" in category_data:
             category_data['details'].sort(key=lambda x: x['name'])
-            
-    driver.switch_to.default_content()
     return current_status
 
-# --- MAIN ROUTER & PROCESSOR (No changes) ---
+# --- MAIN ROUTER & PROCESSOR ---
 def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
@@ -166,7 +166,7 @@ def process_ticket_details_site(site_config):
     else:
         print(f"No changes detected for {name}."); return {"change_detected": False}
 
-# --- ON-SALE PROCESSOR (No changes) ---
+# --- ON-SALE PROCESSOR ---
 def process_on_sale_site(site_config):
     name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
     print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
@@ -183,7 +183,7 @@ def process_on_sale_site(site_config):
     else:
         print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
 
-# --- GRAPHICAL MATRIX GENERATION (No changes) ---
+# --- GRAPHICAL MATRIX GENERATION ---
 def generate_availability_matrix():
     print("Generating graphical availability matrix...")
     DISPLAY_CATEGORIES = [
@@ -225,7 +225,8 @@ def generate_availability_matrix():
     img_width = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
     img_height = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
     try:
-        font = ImageFont.truetype("arial.ttf", FONT_SIZE); timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
+        font = ImageFont.truetype("arial.ttf", FONT_SIZE)
+        timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
         cross_font = ImageFont.truetype("arialbd.ttf", FONT_SIZE + 4)
     except IOError:
         print("Warning: Arial fonts not found. Using default fonts."); font = ImageFont.load_default(); timestamp_font = font; cross_font = font
