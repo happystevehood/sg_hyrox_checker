@@ -106,19 +106,20 @@
       ]
     },
     {
-      "name": "Brisbane Apr '26",
+      "name": "Brisbane APAC Apr '26",
       "site_type": "vivenu_v2",
       "url": "https://australia.hyrox.com/event/hyrox-open-apac-regional-championships-2026-2e2kqe",
       "keywords": [
         "Saturday",
         "Sunday"
       ],
-      "status_file": "brisbane_apr_26_status.json",
+      "status_file": "brisbane_apac_apr_26_status.json",
       "email_to": "happychildhood@yahoo.com",
       "exclude_prefixes": [
           "HYROX ADAPTIVE",
           "CHARITY",
-          "SPECTATOR"
+          "SPECTATOR",
+          "FREE"
       ]
     },
     {
