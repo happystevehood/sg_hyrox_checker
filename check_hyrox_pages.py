@@ -98,49 +98,55 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
-# --- SCRAPER 2: "vivenu_v2" (Rewritten to be robust and reliable) ---
+# --- SCRAPER 2: "vivenu_v2" (Rewritten with Robust Try-Catch-Fallback Logic) ---
 def _process_vivenu_v2(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 20)
+    
+    json_data = None
+    # --- Attempt 1: Fast Path ---
+    try:
+        print("Attempting fast scrape...")
+        short_wait = WebDriverWait(driver, 5)
+        script_element = short_wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
+        json_data = json.loads(script_element.get_attribute("textContent"))
+        print("Fast scrape successful.")
+    except TimeoutException:
+        # --- Attempt 2: Fallback Path ---
+        print("Fast scrape failed, trying fallback method...")
+        long_wait = WebDriverWait(driver, 20)
+        
+        buy_button = long_wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
+        driver.execute_script("arguments[0].click();", buy_button)
+        
+        long_wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sellmodal-anchor")))
+        
+        script_element = long_wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
+        json_data = json.loads(script_element.get_attribute("textContent"))
+        print("Fallback scrape successful.")
 
-    # 1. Click the "Buy tickets" button to trigger the modal.
-    buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
-    driver.execute_script("arguments[0].click();", buy_button)
-    
-    # 2. Wait for the iframe to load and switch into it.
-    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sellmodal-anchor")))
-    
-    # 3. Now inside the iframe, wait for ticket elements to become visible.
-    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "ticket-type")))
-    ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
-    
-    for ticket in ticket_elements:
-        try:
-            # 4. Reliably check the class attribute for the "sold-out" status.
-            status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
-            if status == "Sold out":
-                continue
-
-            clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
-            if any(clean_name.startswith(prefix) for prefix in exclude_prefixes):
-                continue
+    # --- Process the JSON data (common to both methods) ---
+    tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
+    for ticket in tickets_list:
+        status = "Available" if ticket.get("active") else "Sold out"
+        if status == "Sold out": continue
             
-            for keyword in keywords:
-                if keyword.lower() in clean_name.lower():
-                    current_status[keyword]["details"].append({"name": clean_name, "status": status})
-                    break
-        except Exception:
-            continue
-
-    # 5. Sort the lists for consistent comparison.
+        clean_name = normalize_text(ticket.get("name", ""))
+        if ticket.get("styleOptions", {}).get("hiddenInSelectionArea"): continue
+        if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
+            
+        for keyword in keywords:
+            if keyword.lower() in clean_name.lower():
+                current_status[keyword]["details"].append({"name": clean_name, "status": status})
+                break
+                
     for category_data in current_status.values():
         if "details" in category_data:
             category_data['details'].sort(key=lambda x: x['name'])
             
     return current_status
 
-# --- MAIN ROUTER & PROCESSOR (No changes) ---
+# --- MAIN ROUTER & PROCESSOR ---
 def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
@@ -172,7 +178,7 @@ def process_ticket_details_site(site_config):
     else:
         print(f"No changes detected for {name}."); return {"change_detected": False}
 
-# --- ON-SALE PROCESSOR (No changes) ---
+# --- ON-SALE PROCESSOR ---
 def process_on_sale_site(site_config):
     name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
     print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
@@ -189,7 +195,7 @@ def process_on_sale_site(site_config):
     else:
         print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
 
-# --- GRAPHICAL MATRIX GENERATION (No changes) ---
+# --- GRAPHICAL MATRIX GENERATION ---
 def generate_availability_matrix():
     print("Generating graphical availability matrix...")
     DISPLAY_CATEGORIES = [
@@ -231,7 +237,8 @@ def generate_availability_matrix():
     img_width = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
     img_height = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
     try:
-        font = ImageFont.truetype("arial.ttf", FONT_SIZE); timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
+        font = ImageFont.truetype("arial.ttf", FONT_SIZE)
+        timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
         cross_font = ImageFont.truetype("arialbd.ttf", FONT_SIZE + 4)
     except IOError:
         print("Warning: Arial fonts not found. Using default fonts."); font = ImageFont.load_default(); timestamp_font = font; cross_font = font
