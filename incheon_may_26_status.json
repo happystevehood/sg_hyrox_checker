@@ -25,10 +25,6 @@
       {
         "name": "HYROX PRO WOMEN   | SATURDAY",
         "status": "Available"
-      },
-      {
-        "name": "Spectator |  | SATURDAY",
-        "status": "Available"
       }
     ]
   },
@@ -57,10 +53,6 @@
       },
       {
         "name": "HYROX WOMENS RELAY   | SUNDAY",
-        "status": "Available"
-      },
-      {
-        "name": "Spectator |  | SUNDAY",
         "status": "Available"
       }
     ]
