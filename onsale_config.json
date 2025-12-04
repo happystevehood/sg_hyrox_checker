@@ -54,8 +54,14 @@
     "email_to": "happychildhood@yahoo.com"
   },
   {
-    "name": "Brisbane Apr 26",
+    "name": "APAC Brisbane Apr 26",
     "on_sale": true,
+    "url": "https://hyrox.com/event/hyrox-apac-championships-brisbane/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
+    "name": "Brisbane Apr 26",
+    "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-brisbane/",
     "email_to": "happychildhood@yahoo.com"
   },
