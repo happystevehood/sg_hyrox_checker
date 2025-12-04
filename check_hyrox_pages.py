@@ -53,17 +53,7 @@ def normalize_text(text):
 def _normalize_for_matrix(text):
     return text.upper().replace("'", "")
 
-# --- *** NEW: Future-proof function to set GitHub Actions outputs *** ---
-def set_github_output(name, value):
-    """Sets an output variable for the GitHub Actions workflow using the new environment file method."""
-    github_output_path = os.getenv('GITHUB_OUTPUT')
-    if github_output_path:
-        with open(github_output_path, 'a') as f:
-            f.write(f'{name}={value}\n')
-    else:
-        print(f"Local run: Would set GITHUB_OUTPUT '{name}' to '{value}'")
-
-# --- SCRAPERS and PROCESSORS (No changes) ---
+# --- SCRAPER 1: "vivenu_v1" (No changes) ---
 def _process_vivenu_v1(site_config, driver):
     keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
@@ -99,43 +89,52 @@ def _process_vivenu_v1(site_config, driver):
     current_status["unmatched_categories"] = unmatched_categories
     return current_status
 
+# --- SCRAPER 2: "vivenu_v2" (Completely Rewritten for Reliability) ---
 def _process_vivenu_v2(site_config, driver):
-    keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
+    keywords = site_config['keywords']
+    exclude_prefixes = site_config.get("exclude_prefixes", [])
     current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 15)
-    json_data = None
-    try:
-        script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
-        json_data = json.loads(script_element.get_attribute("textContent"))
-    except TimeoutException:
-        print("Fallback: Clicking 'Buy tickets' to load data...")
-        buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
-        driver.execute_script("arguments[0].click();", buy_button)
-        time.sleep(3)
-        object_element = wait.until(EC.presence_of_element_located((By.ID, "sellmodal-anchor")))
-        checkout_path = object_element.get_attribute("data")
-        if not checkout_path: raise Exception("Could not find checkout path.")
-        checkout_url = urljoin(driver.current_url, checkout_path)
-        print(f"Navigating directly to checkout URL: {checkout_url}")
-        driver.get(checkout_url)
-        script_element = wait.until(EC.presence_of_element_located((By.ID, "__NEXT_DATA__")))
-        json_data = json.loads(script_element.get_attribute("textContent"))
-    tickets_list = json_data.get("props", {}).get("pageProps", {}).get("shop", {}).get("tickets", [])
-    for ticket in tickets_list:
-        status = "Available" if ticket.get("active") else "Sold out"
-        if status == "Sold out": continue
-        clean_name = normalize_text(ticket.get("name", ""))
-        if ticket.get("styleOptions", {}).get("hiddenInSelectionArea"): continue
-        if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
-        for keyword in keywords:
-            if keyword.lower() in clean_name.lower():
-                current_status[keyword]["details"].append({"name": clean_name, "status": status})
-                break
+    wait = WebDriverWait(driver, 20)
+
+    # 1. Click the initial "Buy tickets" button on the main page
+    buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
+    driver.execute_script("arguments[0].click();", buy_button)
+    
+    # 2. Wait for the iframe to be available and switch the driver's context to it
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sellmodal-anchor")))
+    
+    # 3. Now inside the iframe, wait for the ticket elements to be visible
+    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "ticket-type")))
+    ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
+    
+    for ticket in ticket_elements:
+        try:
+            # 4. Check for the "sold-out" class, just like in the v1 scraper
+            status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
+            if status == "Sold out":
+                continue
+
+            clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
+            if any(clean_name.startswith(prefix) for prefix in exclude_prefixes):
+                continue
+            
+            # Categorize the ticket by day/keyword
+            for keyword in keywords:
+                if keyword.lower() in clean_name.lower():
+                    current_status[keyword]["details"].append({"name": clean_name, "status": status})
+                    break # Stop after finding the first match
+        except Exception:
+            continue # Ignore any malformed ticket elements
+
+    # 5. Sort the details for consistency
     for category_data in current_status.values():
         if "details" in category_data:
             category_data['details'].sort(key=lambda x: x['name'])
+            
+    driver.switch_to.default_content()
     return current_status
 
+# --- MAIN ROUTER & PROCESSOR (No changes) ---
 def process_ticket_details_site(site_config):
     name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
     site_type = site_config.get("site_type", "vivenu_v1")
@@ -167,6 +166,7 @@ def process_ticket_details_site(site_config):
     else:
         print(f"No changes detected for {name}."); return {"change_detected": False}
 
+# --- ON-SALE PROCESSOR (No changes) ---
 def process_on_sale_site(site_config):
     name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
     print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
@@ -183,9 +183,9 @@ def process_on_sale_site(site_config):
     else:
         print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
 
+# --- GRAPHICAL MATRIX GENERATION (No changes) ---
 def generate_availability_matrix():
-    print("Generating graphical availability matrix with change detection...")
-    matrix_has_changed = False
+    print("Generating graphical availability matrix...")
     DISPLAY_CATEGORIES = [
         "HYROX PRO WOMEN", "HYROX PRO MEN", "HYROX WOMEN", "HYROX MEN",
         "HYROX PRO DOUBLES WOMEN", "HYROX PRO DOUBLES MEN",
@@ -199,10 +199,12 @@ def generate_availability_matrix():
     try:
         with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: config_data = json.load(f)
         sites = config_data.get("sites", [])
-    except FileNotFoundError: print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
+    except FileNotFoundError:
+        print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
     try:
         with open(MATRIX_STATE_FILE, 'r', encoding='utf-8') as f: previous_matrix_data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError): previous_matrix_data = {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous_matrix_data = {}
     site_names = [site['name'] for site in sites]
     current_matrix_data = {name: {cat: False for cat in DISPLAY_CATEGORIES} for name in site_names}
     for site in sites:
@@ -267,14 +269,16 @@ def generate_availability_matrix():
 def email_matrix():
     print("Preparing to email the matrix report...")
     mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
-    if not (mail_username and mail_password): print("Error: Email credentials not set. Cannot send matrix."); return
+    if not (mail_username and mail_password):
+        print("Error: Email credentials not set. Cannot send matrix."); return
     try:
         with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
             recipient_email = config_data.get("matrix_email_to")
     except (FileNotFoundError, KeyError):
         print(f"Error: Could not find 'matrix_email_to' key in '{TICKET_DETAILS_CONFIG}'."); return
-    if not recipient_email: print("No recipient email specified for matrix report. Skipping email."); return
+    if not recipient_email:
+        print("No recipient email specified for matrix report. Skipping email."); return
     mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
     subject = f"Hyrox Daily Availability Matrix - {datetime.now(mst_tz).strftime('%Y-%m-%d')}"
     body = """<html><body><p>Here is the daily Hyrox availability matrix report.</p><p><img src="cid:matrix_image"></p></body></html>"""
@@ -323,7 +327,6 @@ def main():
             with open(ON_SALE_CONFIG, 'w', encoding='utf-8') as f: json.dump(on_sale_sites, f, indent=2, ensure_ascii=False)
     except FileNotFoundError: print(f"Info: '{ON_SALE_CONFIG}' not found, skipping.")
     except Exception as e: print(f"FATAL ERROR in on-sale processing: {e}")
-    
     if at_least_one_change:
         set_github_output('changes_detected', 'true')
 
