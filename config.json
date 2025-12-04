@@ -1,39 +1,6 @@
 {
   "matrix_email_to": "happychildhood@yahoo.com",
   "sites": [
-   {
-      "name": "Shanghai Nov '25",
-      "site_type": "vivenu_v2",
-      "url": "https://china.hyrox.com/event/hyrox-shanghai-season-25-26-tf78w3",
-      "keywords": [
-        "Saturday",
-        "Sunday"
-      ],
-      "status_file": "shang_nov_25_status.json",
-      "email_to": "",
-      "exclude_prefixes": [
-          "HYROX ADAPTIVE",
-          "CHARITY",
-          "Spectator"
-      ]
-    },
-    {
-      "name": "SG Nov '25",
-      "site_type": "vivenu_v1",
-      "url": "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs",
-      "keywords": [
-        "SATURDAY | 29.11.2025",
-        "SUNDAY | 30.11.2025"
-      ],
-      "status_file": "sing_nov_25_status.json",
-      "email_to": "",
-      "exclude_prefixes": [
-          "HYROX ADAPTIVE",
-          "CHARITY",
-          "Spectator",
-          "SATURDAY | CORPORATE RELAY"
-      ]
-    },
     {
       "name": "Melbourne Dec '25",
       "site_type": "vivenu_v2",
@@ -137,6 +104,38 @@
           "CHARITY",
           "SPECTATOR"
       ]
+    },
+    {
+      "name": "Brisbane Apr '26",
+      "site_type": "vivenu_v2",
+      "url": "https://australia.hyrox.com/event/hyrox-open-apac-regional-championships-2026-2e2kqe",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "brisbane_apr_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
+    },
+    {
+      "name": "Incheon May '26",
+      "site_type": "vivenu_v2",
+      "url": "https://korea.hyrox.com/event/airasia-hyrox-incheon-season-25-26-h48hij",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "incheon_may_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR"
+      ]
     }
   ],
   "old_sites": [
@@ -154,6 +153,39 @@
           "HYROX ADAPTIVE",
           "CHARITY",
           "Spectator"
+      ]
+    },
+       {
+      "name": "Shanghai Nov '25",
+      "site_type": "vivenu_v2",
+      "url": "https://china.hyrox.com/event/hyrox-shanghai-season-25-26-tf78w3",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "shang_nov_25_status.json",
+      "email_to": "",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator"
+      ]
+    },
+    {
+      "name": "SG Nov '25",
+      "site_type": "vivenu_v1",
+      "url": "https://singapore.hyrox.com/checkout/hyrox-singapore-expo-season-25-26-49kevs",
+      "keywords": [
+        "SATURDAY | 29.11.2025",
+        "SUNDAY | 30.11.2025"
+      ],
+      "status_file": "sing_nov_25_status.json",
+      "email_to": "",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "Spectator",
+          "SATURDAY | CORPORATE RELAY"
       ]
     }
   ]
