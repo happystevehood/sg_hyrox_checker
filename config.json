@@ -123,6 +123,25 @@
       ]
     },
     {
+      "name": "Bengalaru Apr '26",
+      "site_type": "vivenu_v2",
+      "url": "https://india.hyrox.co.in/event/hyrox-bengaluru-season-25-26-uivi1l",
+      "keywords": [
+        "Saturday",
+        "Sunday"
+      ],
+      "status_file": "bengalaru_apr_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes": [
+          "HYROX ADAPTIVE",
+          "CHARITY",
+          "SPECTATOR",
+          "Spectator"
+      ]
+    },
+    
+    
+    {
       "name": "Incheon May '26",
       "site_type": "vivenu_v2",
       "url": "https://korea.hyrox.com/event/airasia-hyrox-incheon-season-25-26-h48hij",
