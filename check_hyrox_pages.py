@@ -3,6 +3,8 @@ import json
 import time
 import smtplib
 import sys
+import re
+from urllib.parse import urlparse, urlunparse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -12,8 +14,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from urllib.parse import urljoin
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import pytz
@@ -25,14 +26,24 @@ MATRIX_STATE_FILE = "matrix_last_state.json"
 MATRIX_OUTPUT_FILE = "availability_matrix.png"
 
 # --- HELPER FUNCTIONS ---
-def setup_driver():
-    chrome_options = Options(); chrome_options.add_argument("--headless"); chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage"); chrome_options.add_argument("--window-size=1920,1080")
+def setup_driver(headless=True):
+    chrome_options = Options()
+    if headless:
+        chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
     service = Service()
     return webdriver.Chrome(service=service, options=chrome_options)
 
 def send_email(subject, html_body, recipient_email, mail_username, mail_password, attachment_path=None):
-    msg = MIMEMultipart('alternative'); msg['Subject'] = subject; msg['From'] = f"Hyrox Monitor Bot <{mail_username}>"; msg['To'] = recipient_email
+    if not recipient_email or not mail_username: return 
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f"Hyrox Monitor Bot <{mail_username}>"
+    msg['To'] = recipient_email
     msg.attach(MIMEText(html_body, 'html'))
     if attachment_path and os.path.exists(attachment_path):
         with open(attachment_path, 'rb') as f:
@@ -40,14 +51,16 @@ def send_email(subject, html_body, recipient_email, mail_username, mail_password
             img.add_header('Content-ID', '<matrix_image>')
             msg.attach(img)
     try:
-        print(f"Connecting to SMTP server for '{subject}'...")
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server: server.login(mail_username, mail_password); server.send_message(msg)
-        print("Email sent successfully!")
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(mail_username, mail_password)
+            server.send_message(msg)
     except Exception as e: print(f"Error sending email: {e}")
 
 def normalize_text(text):
     if not isinstance(text, str): return text
-    return text.encode('ascii', 'ignore').decode('utf-8').strip()
+    text = re.sub(r'[^\x00-\x7F]+', '', text) # Remove non-ASCII
+    text = re.sub(r'\s+', ' ', text) # Collapse spaces
+    return text.strip()
 
 def _normalize_for_matrix(text):
     return text.upper().replace("'", "")
@@ -58,127 +71,411 @@ def set_github_output(name, value):
         with open(github_output_path, 'a') as f:
             f.write(f'{name}={value}\n')
 
-# --- SCRAPER 1: "vivenu_v1" ---
-def _process_vivenu_v1(site_config, driver):
-    keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
-    current_status = {keyword: {"found": False, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 20)
-    wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
-    category_links_xpath = "//a[.//div[contains(@class, 'vi-text')]]"
-    available_categories_elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, category_links_xpath)))
-    all_page_categories = [cat.text for cat in available_categories_elements if cat.text]
-    unmatched_categories = list(set(all_page_categories) - set(keywords)); unmatched_categories.sort()
-    if unmatched_categories: print(f"Found new, untracked categories: {unmatched_categories}")
-    for keyword in keywords:
-        if keyword in all_page_categories:
-            current_status[keyword]["found"] = True
-            keyword_link = wait.until(EC.element_to_be_clickable((By.XPATH, f"//div[contains(text(), '{keyword}')]")))
-            driver.execute_script("arguments[0].click();", keyword_link)
-            wait.until(EC.presence_of_element_located((By.XPATH, "//button[contains(., 'Back to categories')]")))
-            ticket_objects = []
-            ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
-            for ticket in ticket_elements:
-                try:
-                    status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
-                    if status == "Sold out": continue
-                    clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
-                    if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
-                    ticket_objects.append({"name": clean_name, "status": status})
-                except Exception: continue
-            ticket_objects.sort(key=lambda x: x['name'])
-            current_status[keyword]["details"] = ticket_objects
-            back_button_locator = (By.XPATH, "//button[contains(., 'Back to categories')]")
-            back_button = wait.until(EC.element_to_be_clickable(back_button_locator))
-            driver.execute_script("arguments[0].click();", back_button)
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "categories")))
-    current_status["unmatched_categories"] = unmatched_categories
-    return current_status
+def clean_checkout_url(url):
+    if not url: return None
+    try:
+        parsed = urlparse(url)
+        clean = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+        return clean
+    except:
+        return url
 
-# --- SCRAPER 2: "vivenu_v2" (Robust version) ---
-def _process_vivenu_v2(site_config, driver):
-    keywords = site_config['keywords']; exclude_prefixes = site_config.get("exclude_prefixes", [])
-    current_status = {keyword: {"found": True, "details": []} for keyword in keywords}
-    wait = WebDriverWait(driver, 20)
-    
-    buy_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Buy tickets')]")))
-    driver.execute_script("arguments[0].click();", buy_button)
-    
-    wait.until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sellmodal-anchor")))
-    
-    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "ticket-type")))
-    ticket_elements = driver.find_elements(By.CLASS_NAME, "ticket-type")
-    
-    for ticket in ticket_elements:
+# --- COOKIE HANDLING ---
+def handle_cookies(driver):
+    end_time = time.time() + 2
+    while time.time() < end_time:
         try:
-            status = "Sold out" if "sold-out" in ticket.get_attribute('class') else "Available"
-            if status == "Sold out": continue
-            clean_name = normalize_text(ticket.find_element(By.CLASS_NAME, "vi-font-semibold").text)
-            if any(clean_name.startswith(prefix) for prefix in exclude_prefixes): continue
+            host = driver.find_elements(By.ID, "usercentrics-root")
+            if host:
+                shadow_root = driver.execute_script("return arguments[0].shadowRoot", host[0])
+                if shadow_root:
+                    accept_btn = shadow_root.find_element(By.CSS_SELECTOR, "button[data-testid='uc-accept-all-button']")
+                    if accept_btn.is_displayed():
+                        driver.execute_script("arguments[0].click();", accept_btn)
+                        return
+        except: pass
+
+        selectors = [
+            "//button[contains(@class, 'rcb-btn-accept-all')]", 
+            "//button[normalize-space()='Accept all']",
+            "//a[normalize-space()='Accept all']"
+        ]
+        for xpath in selectors:
+            try:
+                btns = driver.find_elements(By.XPATH, xpath)
+                for btn in btns:
+                    if btn.is_displayed():
+                        driver.execute_script("arguments[0].click();", btn)
+                        return 
+            except: continue
+        time.sleep(0.5)
+
+# --- SHARED SCRAPING LOGIC ---
+
+def click_back_button(driver):
+    try:
+        xpath = "//button[.//svg[contains(@class, 'lucide-chevron-left')] or .//div[contains(text(), 'Back')]]"
+        btns = driver.find_elements(By.XPATH, xpath)
+        for btn in btns:
+            if btn.is_displayed():
+                driver.execute_script("arguments[0].click();", btn)
+                return True
+    except: pass
+    return False
+
+def wait_for_view_restoration(driver, text_to_find):
+    end_time = time.time() + 5
+    while time.time() < end_time:
+        try:
+            elements = driver.find_elements(By.CLASS_NAME, "card-list-item") + \
+                       driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
+            for el in elements:
+                clean_el_text = normalize_text(el.text)
+                clean_target = normalize_text(text_to_find)
+                if clean_target in clean_el_text and el.is_displayed():
+                    return True
+        except: pass
+        time.sleep(0.5)
+    return False
+
+def scrape_current_view(driver, exclude_prefixes):
+    """Scrapes visible tickets based on button availability."""
+    tickets = []
+    rows = driver.find_elements(By.CLASS_NAME, "ticket-type")
+    
+    # Check if rows are present but waiting for buttons (hydration)
+    if rows:
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".ticket-type button[aria-label^='Add']"))
+            )
+        except TimeoutException: pass
+        rows = driver.find_elements(By.CLASS_NAME, "ticket-type") # Re-fetch
+
+    for row in rows:
+        try:
+            try:
+                name_el = row.find_element(By.CLASS_NAME, "vi-font-semibold")
+                raw_name = name_el.text
+            except:
+                raw_name = row.text.split('\n')[0]
             
-            for keyword in keywords:
-                if keyword.lower() in clean_name.lower():
-                    current_status[keyword]["details"].append({"name": clean_name, "status": status})
+            name = normalize_text(raw_name)
+            
+            if any(name.lower().startswith(p.lower()) for p in exclude_prefixes):
+                continue
+                
+            status = "Sold out"
+            
+            try:
+                add_btn = row.find_element(By.CSS_SELECTOR, "button[aria-label^='Add']")
+                if add_btn.is_displayed() and add_btn.is_enabled():
+                    status = "Available"
+            except NoSuchElementException:
+                pass 
+            
+            tickets.append({"name": name, "status": status})
+        except: continue
+    return tickets
+
+def traverse_menu(driver, exclude_prefixes, depth=0):
+    """Recursive navigation with smart waiting."""
+    found_tickets = []
+    
+    # --- CRITICAL FIX: WAIT FOR CONTENT ---
+    # Wait for either buttons or tickets to appear. This handles network latency between clicks.
+    try:
+        WebDriverWait(driver, 5).until(
+            lambda d: d.find_elements(By.CLASS_NAME, "card-list-item") or 
+                      d.find_elements(By.CLASS_NAME, "ticket-type") or
+                      d.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
+        )
+    except TimeoutException:
+        pass # Fall through to checks (might be empty/sold out)
+
+    # 1. Leaf Node Check
+    tickets_here = scrape_current_view(driver, exclude_prefixes)
+    if tickets_here:
+        print(f"    [Depth {depth}] Found {len(tickets_here)} tickets.")
+        return tickets_here
+
+    # 2. Find Options
+    options = []
+    
+    # Strategy A: Buttons (Class/Gender view)
+    buttons = driver.find_elements(By.CLASS_NAME, "card-list-item")
+    if buttons:
+        options = buttons
+    else:
+        # Strategy B: Category Links (First view)
+        cat_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
+        options = cat_links
+
+    if not options:
+        # Debugging: If no tickets and no options, verify why
+        # driver.save_screenshot(f"debug_empty_depth_{depth}.png")
+        return []
+        
+    option_list = []
+    for o in options:
+        if not o.is_displayed(): continue
+        try:
+            text_div = o.find_element(By.CLASS_NAME, "vi-font-medium")
+            raw = text_div.text
+        except:
+            raw = o.text.split('\n')[0]
+            
+        if raw and "Tickets available" not in raw and "Select" not in raw:
+            option_list.append(raw)
+            
+    option_list = list(dict.fromkeys(option_list))
+
+    # 3. Iterate
+    for opt_text in option_list:
+        clean_opt_text = normalize_text(opt_text)
+        if any(clean_opt_text.lower().startswith(p.lower()) for p in exclude_prefixes):
+            print(f"    [Depth {depth}] Skipping excluded: {clean_opt_text}")
+            continue
+
+        print(f"    [Depth {depth}] Clicking option: {clean_opt_text}")
+        
+        target = None
+        
+        # Re-find Element (DOM Freshness)
+        fresh_btns = driver.find_elements(By.CLASS_NAME, "card-list-item")
+        for b in fresh_btns:
+            if opt_text in b.text and b.is_displayed():
+                target = b
+                break
+        
+        if not target:
+            fresh_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
+            for l in fresh_links:
+                # Use regex/normalize to match text inside link
+                if opt_text in l.text and l.is_displayed():
+                    target = l
                     break
-        except Exception: continue
 
-    for category_data in current_status.values():
-        if "details" in category_data:
-            category_data['details'].sort(key=lambda x: x['name'])
-            
-    return current_status
+        if target:
+            try:
+                driver.execute_script("arguments[0].click();", target)
+                # Small sleep still needed for animation start
+                time.sleep(0.5) 
+                
+                results = traverse_menu(driver, exclude_prefixes, depth + 1)
+                found_tickets.extend(results)
+                
+                if click_back_button(driver):
+                    wait_for_view_restoration(driver, opt_text)
+                
+            except Exception as e:
+                print(f"    ! Error clicking {clean_opt_text}: {e}")
 
-# --- MAIN ROUTER & PROCESSOR ---
-def process_ticket_details_site(site_config):
-    name = site_config['name']; url = site_config['url']; status_file = site_config['status_file']
-    site_type = site_config.get("site_type", "vivenu_v1")
-    print(f"\n--- [Ticket Details] Processing: {name} (Type: {site_type}) ---")
+    return found_tickets
+
+def execute_checkout_scraping(driver, checkout_url, site_config):
+    """
+    SHARED LOGIC: Takes a valid checkout URL, navigates to it, and crawls the menu.
+    """
+    print(f"  > Clean Checkout URL: {checkout_url[:60]}...")
+    driver.get(checkout_url)
+    handle_cookies(driver)
+    
+    print("  > Waiting for menu content...")
+    try:
+        WebDriverWait(driver, 15).until(
+            lambda d: d.find_elements(By.CLASS_NAME, "card-list-item") or 
+                      d.find_elements(By.CLASS_NAME, "ticket-type") or
+                      d.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
+        )
+    except TimeoutException:
+        print("  ! Checkout page did not load content.")
+        safe_name = site_config['name'].replace(' ', '_').replace("'", "")
+        driver.save_screenshot(f"debug_failed_load_{safe_name}.png")
+        return {"change_detected": False}
+
+    all_tickets = traverse_menu(driver, site_config.get("exclude_prefixes", []))
+    
+    current_status = {"General": {"found": False, "details": []}}
+    
+    if all_tickets:
+        current_status["General"]["found"] = True
+        unique = {t['name']:t for t in all_tickets}.values()
+        current_status["General"]["details"] = sorted(list(unique), key=lambda x: x['name'])
+        print(f"  > Success! Found {len(current_status['General']['details'])} unique tickets.")
+    else:
+        print("  > No tickets found.")
+
+    status_file = site_config['status_file']
     try:
         with open(status_file, 'r', encoding='utf-8') as f: previous_status = json.load(f)
-    except FileNotFoundError: previous_status = {}
-    current_status = {}
-    driver = setup_driver()
+    except: previous_status = {}
+
+    if previous_status != current_status and current_status["General"]["found"]:
+        print(f"  > CHANGE DETECTED!")
+        with open(status_file, 'w', encoding='utf-8') as f: 
+            json.dump(current_status, f, indent=2, ensure_ascii=False)
+        return {
+            "change_detected": True, 
+            "site_config": site_config, 
+            "previous_status": previous_status, 
+            "current_status": current_status
+        }
+        
+    return {"change_detected": False}
+
+# --- PROCESSOR 1: STANDARD (Embedded/Popup) ---
+def _process_hyrox_event_page(site_config, driver):
+    """Original Logic for Standard Events"""
+    print(f"  > [Standard Flow] Loading event page...")
+    driver.get(site_config['url'])
+    handle_cookies(driver)
+    
+    checkout_url = None
+    
+    # 1. Buy Button
     try:
-        driver.get(url)
-        if site_type == "vivenu_v1":
-            current_status = _process_vivenu_v1(site_config, driver)
-        elif site_type == "vivenu_v2":
-            current_status = _process_vivenu_v2(site_config, driver)
-        else:
-            print(f"ERROR: Unknown site_type '{site_type}' for '{name}'. Skipping.")
+        buy_btn = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Buy Tickets here']"))
+        )
+        driver.execute_script("arguments[0].click();", buy_btn)
     except TimeoutException:
-        print(f"ERROR: Timed out on '{name}'. Page may have changed or failed to load. Skipping.")
-    except Exception as e:
-        print(f"An unexpected error occurred for '{name}': {e}")
-    finally:
-        driver.quit()
-    if previous_status != current_status and current_status:
-        print(f"CHANGE DETECTED for {name}!")
-        with open(status_file, 'w', encoding='utf-8') as f: json.dump(current_status, f, indent=2, ensure_ascii=False)
-        print(f"Updated status file: {status_file}")
-        return {"change_detected": True, "site_config": site_config, "previous_status": previous_status, "current_status": current_status}
-    else:
-        print(f"No changes detected for {name}."); return {"change_detected": False}
+        print("    ! Could not find 'Buy Tickets here' button.")
+        return {"change_detected": False}
 
-# --- ON-SALE PROCESSOR ---
-def process_on_sale_site(site_config):
-    name = site_config['name']; url = site_config['url']; stored_on_sale_status = site_config['on_sale']
-    print(f"\n--- [On Sale] Processing site: {name} (Stored status: {stored_on_sale_status}) ---")
-    if stored_on_sale_status:
-        print("Skipping check, already marked as on sale."); return {"change_detected": False}
-    driver = setup_driver()
+    # 2. Athlete Link & Object
     try:
-        driver.get(url)
-        live_on_sale_status = "Buy Tickets here" in driver.page_source or "Buy tickets" in driver.page_source
-    finally: driver.quit()
-    if live_on_sale_status and not stored_on_sale_status:
-        print(f"ON-SALE DETECTED for {name}!"); site_config['on_sale'] = True
-        return {"change_detected": True, "site_config": site_config}
+        time.sleep(1) 
+        athlete_link = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(., 'Athlete Tickets')]"))
+        )
+        driver.execute_script("arguments[0].click();", athlete_link)
+        
+        time.sleep(2)
+        try:
+            obj = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "sellmodal-anchor"))
+            )
+            raw_url = obj.get_attribute("data")
+            checkout_url = clean_checkout_url(raw_url)
+        except TimeoutException:
+            # Fallback for generic objects
+            objs = driver.find_elements(By.TAG_NAME, "object")
+            for o in objs:
+                if "checkout" in (o.get_attribute("data") or ""):
+                    checkout_url = clean_checkout_url(o.get_attribute("data"))
+                    break
+    except Exception: pass
+    
+    if checkout_url:
+        return execute_checkout_scraping(driver, checkout_url, site_config)
     else:
-        print(f"Tickets not yet on sale for {name}."); return {"change_detected": False}
+        print("  ! Failed to extract checkout URL.")
+        return {"change_detected": False}
 
-# --- GRAPHICAL MATRIX GENERATION ---
+# --- PROCESSOR 2: INDIA (Direct Link/Redirect/Overlay) ---
+def _process_hyrox_event_page_india(site_config, driver):
+    """Special Logic for Bengaluru/India (Direct or Overlay)"""
+    print(f"  > [India Flow] Loading event page...")
+    driver.get(site_config['url'])
+    handle_cookies(driver)
+    
+    checkout_url = None
+    
+    try:
+        # print(f"    [Debug] Page Title: {driver.title}")
+        
+        # 1. Find CTA Button
+        keywords = ["buy ticket", "register", "get ticket", "book now", "tickets"]
+        target = None
+        for kw in keywords:
+            if target: break
+            xpath = f"//*[(self::a or self::button or contains(@class, 'btn') or contains(@class, 'button')) and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{kw}')]"
+            elements = driver.find_elements(By.XPATH, xpath)
+            for el in elements:
+                if el.is_displayed():
+                    target = el
+                    # print(f"    [Debug] Found CTA: {el.text.strip().replace(chr(10), ' ')}")
+                    break
+        
+        if target:
+            # 2. Check if Direct Link
+            if target.tag_name == 'a':
+                href = target.get_attribute('href')
+                if href and ("checkout" in href or "vivenu" in href):
+                    checkout_url = clean_checkout_url(href)
+                    # print(f"    [Debug] Found direct href.")
+            
+            # 3. Click and Check (Redirect or Overlay)
+            if not checkout_url:
+                current_url = driver.current_url
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", target)
+                time.sleep(0.5)
+                try: target.click()
+                except: driver.execute_script("arguments[0].click();", target)
+                
+                time.sleep(3) 
+                
+                # Check for Redirect
+                if driver.current_url != current_url and ("checkout" in driver.current_url or "vivenu" in driver.current_url):
+                    # print("    [Debug] Page redirected.")
+                    checkout_url = clean_checkout_url(driver.current_url)
+                
+                # Check for New Tab
+                if not checkout_url and len(driver.window_handles) > 1:
+                    driver.switch_to.window(driver.window_handles[-1])
+                    if "checkout" in driver.current_url or "vivenu" in driver.current_url:
+                        # print("    [Debug] Switched to new tab.")
+                        checkout_url = clean_checkout_url(driver.current_url)
+
+                # Check for On-Page Overlay (Object/Iframe)
+                if not checkout_url:
+                    # print("    [Debug] Checking for overlay widget...")
+                    objs = driver.find_elements(By.ID, "sellmodal-anchor")
+                    if objs:
+                        data = objs[0].get_attribute("data")
+                        if data: 
+                            checkout_url = clean_checkout_url(data)
+                    
+                    if not checkout_url:
+                        frames = driver.find_elements(By.TAG_NAME, "iframe")
+                        for f in frames:
+                            src = f.get_attribute("src")
+                            if src and ("checkout" in src or "vivenu" in src):
+                                checkout_url = clean_checkout_url(src)
+                                break
+
+    except Exception as e:
+        print(f"    ! Error in India flow: {e}")
+
+    if checkout_url:
+        return execute_checkout_scraping(driver, checkout_url, site_config)
+    else:
+        print("  ! Failed to extract India checkout URL.")
+        return {"change_detected": False}
+
+# --- MAIN ROUTER ---
+def process_ticket_details_site(site_config, driver):
+    name = site_config['name']
+    site_type = site_config.get("site_type", "hyrox_event_page")
+    
+    print(f"\n--- Processing: {name} (Type: {site_type}) ---")
+    
+    try:
+        if site_type == "hyrox_event_page":
+            return _process_hyrox_event_page(site_config, driver)
+        elif site_type == "hyrox_event_page_india":
+            return _process_hyrox_event_page_india(site_config, driver)
+        else:
+            print(f"  ! Unknown site_type: {site_type}")
+            return {"change_detected": False}
+    except Exception as e:
+        print(f"  ! Unexpected error: {e}")
+        return {"change_detected": False}
+
+# --- MATRIX GENERATION ---
 def generate_availability_matrix():
-    print("Generating graphical availability matrix...")
+    print("Generating matrix...")
     DISPLAY_CATEGORIES = [
         "HYROX PRO WOMEN", "HYROX PRO MEN", "HYROX WOMEN", "HYROX MEN",
         "HYROX PRO DOUBLES WOMEN", "HYROX PRO DOUBLES MEN",
@@ -188,146 +485,119 @@ def generate_availability_matrix():
     MATCHING_CATEGORIES = sorted(DISPLAY_CATEGORIES, key=len, reverse=True)
     CELL_SIZE = 40; COL_HEADER_HEIGHT = 150; ROW_HEADER_WIDTH = 250; PADDING = 20
     FONT_SIZE = 14; AVAILABLE_COLOR = "#77DD77"; UNAVAILABLE_COLOR = "#FF6961"
-    GRID_COLOR = "#D3D3D3"; TEXT_COLOR = "#000000"; BG_COLOR = "#FFFFFF"
+    
     try:
-        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: config_data = json.load(f)
-        sites = config_data.get("sites", [])
-    except FileNotFoundError:
-        print(f"ERROR: Could not find '{TICKET_DETAILS_CONFIG}'. Aborting."); return
+        with open(TICKET_DETAILS_CONFIG, 'r') as f: config = json.load(f)
+        sites = config.get("sites", [])
+    except: return
+
     try:
-        with open(MATRIX_STATE_FILE, 'r', encoding='utf-8') as f: previous_matrix_data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        previous_matrix_data = {}
-    site_names = [site['name'] for site in sites]
-    current_matrix_data = {name: {cat: False for cat in DISPLAY_CATEGORIES} for name in site_names}
+        with open(MATRIX_STATE_FILE, 'r') as f: prev_matrix = json.load(f)
+    except: prev_matrix = {}
+
+    site_names = [s['name'] for s in sites]
+    curr_matrix = {n: {c: False for c in DISPLAY_CATEGORIES} for n in site_names}
+
     for site in sites:
-        site_name, status_file = site['name'], site['status_file']
         try:
-            with open(status_file, 'r', encoding='utf-8') as f: status_data = json.load(f)
-            for data in status_data.values():
-                if "details" not in data: continue
-                for ticket in data.get("details", []):
-                    ticket_name = ticket.get("name", "")
-                    normalized_ticket_name = _normalize_for_matrix(ticket_name)
-                    for cat_to_check in MATCHING_CATEGORIES:
-                        if _normalize_for_matrix(cat_to_check) in normalized_ticket_name:
-                            current_matrix_data[site_name][cat_to_check] = True
+            with open(site['status_file'], 'r') as f: data = json.load(f)
+            tickets = []
+            for k, v in data.items():
+                if "details" in v: tickets.extend(v["details"])
+            
+            for t in tickets:
+                if t.get("status") == "Available":
+                    norm_name = _normalize_for_matrix(t.get("name", ""))
+                    for cat in MATCHING_CATEGORIES:
+                        if _normalize_for_matrix(cat) in norm_name:
+                            curr_matrix[site['name']][cat] = True
                             break
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Warning: Could not process '{status_file}' for '{site_name}'. Reason: {e}")
-    img_width = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
-    img_height = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
-    try:
-        font = ImageFont.truetype("arial.ttf", FONT_SIZE)
-        timestamp_font = ImageFont.truetype("arial.ttf", FONT_SIZE - 2)
-        cross_font = ImageFont.truetype("arialbd.ttf", FONT_SIZE + 4)
-    except IOError:
-        print("Warning: Arial fonts not found. Using default fonts."); font = ImageFont.load_default(); timestamp_font = font; cross_font = font
-    img = Image.new('RGB', (img_width, img_height), BG_COLOR); draw = ImageDraw.Draw(img)
+        except: pass
+
+    w = ROW_HEADER_WIDTH + (len(site_names) * CELL_SIZE) + PADDING * 2
+    h = COL_HEADER_HEIGHT + (len(DISPLAY_CATEGORIES) * CELL_SIZE) + PADDING * 2
+    
+    try: font = ImageFont.truetype("arial.ttf", FONT_SIZE)
+    except: font = ImageFont.load_default()
+    
+    img = Image.new('RGB', (w, h), "#FFFFFF")
+    draw = ImageDraw.Draw(img)
+
     for i, name in enumerate(site_names):
-        x = ROW_HEADER_WIDTH + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING; y = COL_HEADER_HEIGHT - 10 + PADDING
-        txt = Image.new('L', (COL_HEADER_HEIGHT, FONT_SIZE + 10)); d = ImageDraw.Draw(txt)
-        d.text((0, 0), name, font=font, fill=255); w = txt.rotate(90, expand=1)
-        img.paste(TEXT_COLOR, (int(x - w.size[0]/2), int(y - w.size[1])), w)
-    for i, category in enumerate(DISPLAY_CATEGORIES):
-        x = PADDING; y = COL_HEADER_HEIGHT + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING
-        draw.text((x, y), category, font=font, fill=TEXT_COLOR, anchor="lm")
-    for row_idx, category in enumerate(DISPLAY_CATEGORIES):
-        y1 = COL_HEADER_HEIGHT + (row_idx * CELL_SIZE) + PADDING; y2 = y1 + CELL_SIZE
-        for col_idx, site_name in enumerate(site_names):
-            x1 = ROW_HEADER_WIDTH + (col_idx * CELL_SIZE) + PADDING; x2 = x1 + CELL_SIZE
-            current_available = current_matrix_data.get(site_name, {}).get(category, False)
-            previous_available = previous_matrix_data.get(site_name, {}).get(category, False)
-            color = AVAILABLE_COLOR if current_available else UNAVAILABLE_COLOR
-            draw.rectangle([x1, y1, x2, y2], fill=color, outline=GRID_COLOR)
-            if current_available != previous_available:
-                draw.text((x1 + CELL_SIZE / 2, y1 + CELL_SIZE / 2), "X", font=cross_font, fill=TEXT_COLOR, anchor="mm")
+        x = ROW_HEADER_WIDTH + (i * CELL_SIZE) + (CELL_SIZE / 2) + PADDING
+        y = COL_HEADER_HEIGHT - 10 + PADDING
+        txt = Image.new('L', (COL_HEADER_HEIGHT, FONT_SIZE + 10))
+        d = ImageDraw.Draw(txt)
+        d.text((0, 0), name, font=font, fill=255)
+        r_txt = txt.rotate(90, expand=1)
+        img.paste("#000000", (int(x - r_txt.size[0]/2), int(y - r_txt.size[1])), r_txt)
+
+    for i, cat in enumerate(DISPLAY_CATEGORIES):
+        draw.text((PADDING, COL_HEADER_HEIGHT + (i * CELL_SIZE) + 20 + PADDING), cat, font=font, fill="black", anchor="lm")
+        
+    for r, cat in enumerate(DISPLAY_CATEGORIES):
+        y1 = COL_HEADER_HEIGHT + (r * CELL_SIZE) + PADDING
+        for c, name in enumerate(site_names):
+            x1 = ROW_HEADER_WIDTH + (c * CELL_SIZE) + PADDING
+            avail = curr_matrix.get(name, {}).get(cat, False)
+            color = AVAILABLE_COLOR if avail else UNAVAILABLE_COLOR
+            draw.rectangle([x1, y1, x1+CELL_SIZE, y1+CELL_SIZE], fill=color, outline="#D3D3D3")
+            if avail != prev_matrix.get(name, {}).get(cat, False):
+                draw.text((x1+20, y1+20), "X", font=font, fill="black", anchor="mm")
+
     try:
-        mst_tz = pytz.timezone('Asia/Kuala_Lumpur'); mst_now = datetime.now(mst_tz)
-        timestamp_str = mst_now.strftime("%y:%m:%d %H:%M MST")
-        draw.text((img_width - PADDING, PADDING), timestamp_str, font=timestamp_font, fill=TEXT_COLOR, anchor="ra")
-    except Exception as e: print(f"Warning: Could not draw timestamp. Error: {e}")
+        ts = datetime.now(pytz.timezone('Asia/Kuala_Lumpur')).strftime("%y:%m:%d %H:%M MST")
+        draw.text((w - PADDING, PADDING), ts, font=font, fill="black", anchor="ra")
+    except: pass
+    
     img.save(MATRIX_OUTPUT_FILE)
-    print(f"\nMatrix image generated and saved as '{MATRIX_OUTPUT_FILE}'")
-    if current_matrix_data != previous_matrix_data:
-        print("Matrix has changed since the last run.")
-        matrix_has_changed = True
-        with open(MATRIX_STATE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(current_matrix_data, f, indent=2)
-        print(f"Updated matrix state file: '{MATRIX_STATE_FILE}'")
+    print(f"Matrix saved to {MATRIX_OUTPUT_FILE}")
+    
+    if curr_matrix != prev_matrix:
+        with open(MATRIX_STATE_FILE, 'w') as f: json.dump(curr_matrix, f, indent=2)
+        set_github_output('matrix_changed', 'true')
     else:
-        print("No changes detected in the matrix.")
-        matrix_has_changed = False
-    set_github_output('matrix_changed', str(matrix_has_changed).lower())
+        set_github_output('matrix_changed', 'false')
 
 def email_matrix():
-    print("Preparing to email the matrix report...")
-    mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
-    if not (mail_username and mail_password):
-        print("Error: Email credentials not set. Cannot send matrix."); return
+    mail_user = os.getenv('MAIL_USERNAME'); mail_pass = os.getenv('MAIL_PASSWORD')
+    if not (mail_user and mail_pass): return
     try:
-        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f:
-            config_data = json.load(f)
-            recipient_email = config_data.get("matrix_email_to")
-    except (FileNotFoundError, KeyError):
-        print(f"Error: Could not find 'matrix_email_to' key in '{TICKET_DETAILS_CONFIG}'."); return
-    if not recipient_email:
-        print("No recipient email specified for matrix report. Skipping email."); return
-    mst_tz = pytz.timezone('Asia/Kuala_Lumpur')
-    subject = f"Hyrox Daily Availability Matrix - {datetime.now(mst_tz).strftime('%Y-%m-%d')}"
-    body = """<html><body><p>Here is the daily Hyrox availability matrix report.</p><p><img src="cid:matrix_image"></p></body></html>"""
-    send_email(subject, body, recipient_email, mail_username, mail_password, attachment_path=MATRIX_OUTPUT_FILE)
+        with open(TICKET_DETAILS_CONFIG, 'r') as f: rcpt = json.load(f).get("matrix_email_to")
+    except: return
+    
+    mst = pytz.timezone('Asia/Kuala_Lumpur')
+    sub = f"Hyrox Matrix - {datetime.now(mst).strftime('%Y-%m-%d')}"
+    body = "<html><body><img src='cid:matrix_image'></body></html>"
+    send_email(sub, body, rcpt, mail_user, mail_pass, MATRIX_OUTPUT_FILE)
 
-# --- MAIN ORCHESTRATOR ---
-def main():
-    mail_username = os.getenv('MAIL_USERNAME'); mail_password = os.getenv('MAIL_PASSWORD')
-    if not (mail_username and mail_password): print("Warning: Email notifications will be skipped.")
-    at_least_one_change = False
+# --- MAIN ---
+def main(headless=True):
+    mail_user = os.getenv('MAIL_USERNAME'); mail_pass = os.getenv('MAIL_PASSWORD')
+    change = False
+    
+    driver = setup_driver(headless)
+    
     try:
-        with open(TICKET_DETAILS_CONFIG, 'r', encoding='utf-8') as f: ticket_sites = json.load(f)["sites"]
-        for site in ticket_sites:
-            try:
-                result = process_ticket_details_site(site)
-                if result.get("change_detected"):
-                    at_least_one_change = True
-                    if mail_username and mail_password and result['site_config'].get("email_to"):
-                        s_config = result['site_config']; prev = result['previous_status']; curr = result['current_status']
-                        subject = f"[{s_config['name']}] Hyrox Status Change Detected"
-                        html_body = f"""<html><head><style>body{{font-family:sans-serif;}}pre{{background-color:#f4f4f4;padding:1em;border:1px solid #ddd;border-radius:5px;}}</style></head><body>
-                        <p>A change was detected on <a href="{s_config['url']}">{s_config['name']}</a></p>
-                        <h2>New Status:</h2><pre><code>{json.dumps(curr, indent=2, ensure_ascii=False)}</code></pre><hr>
-                        <h2>Previous Status:</h2><pre><code>{json.dumps(prev, indent=2, ensure_ascii=False)}</code></pre></body></html>"""
-                        send_email(subject, html_body, s_config['email_to'], mail_username, mail_password)
-            except Exception as e: print(f"FATAL ERROR processing site {site.get('name', 'Unknown')}: {e}")
-    except (FileNotFoundError, KeyError): print(f"Info: '{TICKET_DETAILS_CONFIG}' not found or malformed, skipping.")
-    except Exception as e: print(f"FATAL ERROR during ticket detail processing: {e}")
-    try:
-        with open(ON_SALE_CONFIG, 'r', encoding='utf-8') as f: on_sale_sites = json.load(f)
-        on_sale_config_updated = False
-        for site in on_sale_sites:
-            try:
-                result = process_on_sale_site(site)
-                if result.get("change_detected"):
-                    at_least_one_change = True; on_sale_config_updated = True
-                    if mail_username and mail_password and result['site_config'].get("email_to"):
-                        s_config = result['site_config']
-                        subject = f"[{s_config['name']}] Hyrox Tickets are ON SALE!"
-                        html_body = f"""<html><body><p>Tickets for <b>{s_config['name']}</b> are now on sale.
-                        <br><br>Check the page here: <a href="{s_config['url']}">{s_config['url']}</a></p></body></html>"""
-                        send_email(subject, html_body, s_config['email_to'], mail_username, mail_password)
-            except Exception as e: print(f"FATAL ERROR processing on-sale site {site.get('name', 'Unknown')}: {e}")
-        if on_sale_config_updated:
-            print(f"Updating '{ON_SALE_CONFIG}' with new 'on_sale' statuses.")
-            with open(ON_SALE_CONFIG, 'w', encoding='utf-8') as f: json.dump(on_sale_sites, f, indent=2, ensure_ascii=False)
-    except FileNotFoundError: print(f"Info: '{ON_SALE_CONFIG}' not found, skipping.")
-    except Exception as e: print(f"FATAL ERROR in on-sale processing: {e}")
-    if at_least_one_change:
-        set_github_output('changes_detected', 'true')
+        with open(TICKET_DETAILS_CONFIG, 'r') as f: sites = json.load(f)["sites"]
+        
+        for s in sites:
+            res = process_ticket_details_site(s, driver)
+            if res.get("change_detected"):
+                change = True
+                if mail_user and mail_pass and res['site_config'].get("email_to"):
+                    send_email(f"[{s['name']}] Status Change", 
+                               f"<pre>{json.dumps(res['current_status'], indent=2)}</pre>",
+                               res['site_config']['email_to'], mail_user, mail_pass)
+                
+    except Exception as e: print(f"Fatal Error: {e}")
+    finally:
+        driver.quit()
+        
+    if change: set_github_output('changes_detected', 'true')
 
 if __name__ == "__main__":
-    if "--matrix" in sys.argv:
-        generate_availability_matrix()
-    elif "--email-matrix" in sys.argv:
-        email_matrix()
-    else:
-        main()
+    is_headless = "--visible" not in sys.argv
+    if "--matrix" in sys.argv: generate_availability_matrix()
+    elif "--email-matrix" in sys.argv: email_matrix()
+    else: main(headless=is_headless)
