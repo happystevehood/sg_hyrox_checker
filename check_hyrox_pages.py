@@ -58,8 +58,8 @@ def send_email(subject, html_body, recipient_email, mail_username, mail_password
 
 def normalize_text(text):
     if not isinstance(text, str): return text
-    text = re.sub(r'[^\x00-\x7F]+', '', text) # Remove non-ASCII
-    text = re.sub(r'\s+', ' ', text) # Collapse spaces
+    text = re.sub(r'[^\x00-\x7F]+', '', text)
+    text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
 def _normalize_for_matrix(text):
@@ -79,6 +79,74 @@ def clean_checkout_url(url):
         return clean
     except:
         return url
+
+def generate_diff_html(site_config, prev_status, curr_status):
+    """
+    Generates an HTML table highlighting changes.
+    """
+    url = site_config['url']
+    name = site_config['name']
+    
+    # Extract details list
+    prev_list = prev_status.get("General", {}).get("details", [])
+    curr_list = curr_status.get("General", {}).get("details", [])
+    
+    # Map previous tickets for easy lookup: Name -> Status
+    prev_map = {t['name']: t['status'] for t in prev_list}
+    
+    html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif;">
+        <h3>Status Change for <a href="{url}" target="_blank" rel="nofollow noopener noreferrer">{name}</a></h3>
+        <p>The following tickets have been detected:</p>
+        <table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">
+            <tr style="background-color: #f2f2f2; text-align: left;">
+                <th>Ticket Name</th>
+                <th>Current Status</th>
+                <th>Previous Status</th>
+            </tr>
+    """
+    
+    for ticket in curr_list:
+        t_name = ticket['name']
+        t_status = ticket['status']
+        p_status = prev_map.get(t_name, "New") # Default to "New" if not in old list
+        
+        # Determine Row Style
+        row_style = ""
+        status_style = ""
+        
+        if t_status != p_status:
+            # Change Detected!
+            if t_status.lower() == "available":
+                # Good news (Green)
+                row_style = "background-color: #d4edda;" 
+                status_style = "color: #155724; font-weight: bold;"
+            elif t_status.lower() == "sold out":
+                # Bad news (Red)
+                row_style = "background-color: #f8d7da;"
+                status_style = "color: #721c24; font-weight: bold;"
+            else:
+                # Neutral/Other change (Yellow)
+                row_style = "background-color: #fff3cd;"
+                
+        html += f"""
+            <tr style="{row_style}">
+                <td>{t_name}</td>
+                <td style="{status_style}">{t_status}</td>
+                <td style="color: #666;">{p_status}</td>
+            </tr>
+        """
+        
+    html += """
+        </table>
+        <br>
+        <p><small>Timestamp: {}</small></p>
+    </body>
+    </html>
+    """.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
+    return html
 
 # --- COOKIE HANDLING ---
 def handle_cookies(driver):
@@ -139,18 +207,16 @@ def wait_for_view_restoration(driver, text_to_find):
     return False
 
 def scrape_current_view(driver, exclude_prefixes):
-    """Scrapes visible tickets based on button availability."""
     tickets = []
     rows = driver.find_elements(By.CLASS_NAME, "ticket-type")
     
-    # Check if rows are present but waiting for buttons (hydration)
     if rows:
         try:
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".ticket-type button[aria-label^='Add']"))
             )
         except TimeoutException: pass
-        rows = driver.find_elements(By.CLASS_NAME, "ticket-type") # Re-fetch
+        rows = driver.find_elements(By.CLASS_NAME, "ticket-type")
 
     for row in rows:
         try:
@@ -179,11 +245,9 @@ def scrape_current_view(driver, exclude_prefixes):
     return tickets
 
 def traverse_menu(driver, exclude_prefixes, depth=0):
-    """Recursive navigation with smart waiting."""
     found_tickets = []
     
-    # --- CRITICAL FIX: WAIT FOR CONTENT ---
-    # Wait for either buttons or tickets to appear. This handles network latency between clicks.
+    # Wait for content load
     try:
         WebDriverWait(driver, 5).until(
             lambda d: d.find_elements(By.CLASS_NAME, "card-list-item") or 
@@ -191,30 +255,25 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
                       d.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
         )
     except TimeoutException:
-        pass # Fall through to checks (might be empty/sold out)
+        pass
 
-    # 1. Leaf Node Check
     tickets_here = scrape_current_view(driver, exclude_prefixes)
     if tickets_here:
         print(f"    [Depth {depth}] Found {len(tickets_here)} tickets.")
         return tickets_here
 
-    # 2. Find Options
     options = []
     
-    # Strategy A: Buttons (Class/Gender view)
+    # Strategy A: Buttons
     buttons = driver.find_elements(By.CLASS_NAME, "card-list-item")
     if buttons:
         options = buttons
     else:
-        # Strategy B: Category Links (First view)
+        # Strategy B: Links
         cat_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
         options = cat_links
 
-    if not options:
-        # Debugging: If no tickets and no options, verify why
-        # driver.save_screenshot(f"debug_empty_depth_{depth}.png")
-        return []
+    if not options: return []
         
     option_list = []
     for o in options:
@@ -230,7 +289,6 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
             
     option_list = list(dict.fromkeys(option_list))
 
-    # 3. Iterate
     for opt_text in option_list:
         clean_opt_text = normalize_text(opt_text)
         if any(clean_opt_text.lower().startswith(p.lower()) for p in exclude_prefixes):
@@ -240,8 +298,6 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
         print(f"    [Depth {depth}] Clicking option: {clean_opt_text}")
         
         target = None
-        
-        # Re-find Element (DOM Freshness)
         fresh_btns = driver.find_elements(By.CLASS_NAME, "card-list-item")
         for b in fresh_btns:
             if opt_text in b.text and b.is_displayed():
@@ -251,16 +307,15 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
         if not target:
             fresh_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
             for l in fresh_links:
-                # Use regex/normalize to match text inside link
-                if opt_text in l.text and l.is_displayed():
+                clean_l_text = normalize_text(l.text)
+                if opt_text in clean_l_text and l.is_displayed():
                     target = l
                     break
 
         if target:
             try:
                 driver.execute_script("arguments[0].click();", target)
-                # Small sleep still needed for animation start
-                time.sleep(0.5) 
+                time.sleep(1.0) 
                 
                 results = traverse_menu(driver, exclude_prefixes, depth + 1)
                 found_tickets.extend(results)
@@ -274,9 +329,6 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
     return found_tickets
 
 def execute_checkout_scraping(driver, checkout_url, site_config):
-    """
-    SHARED LOGIC: Takes a valid checkout URL, navigates to it, and crawls the menu.
-    """
     print(f"  > Clean Checkout URL: {checkout_url[:60]}...")
     driver.get(checkout_url)
     handle_cookies(driver)
@@ -324,16 +376,13 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
         
     return {"change_detected": False}
 
-# --- PROCESSOR 1: STANDARD (Embedded/Popup) ---
+# --- PROCESSOR 1: STANDARD ---
 def _process_hyrox_event_page(site_config, driver):
-    """Original Logic for Standard Events"""
     print(f"  > [Standard Flow] Loading event page...")
     driver.get(site_config['url'])
     handle_cookies(driver)
     
     checkout_url = None
-    
-    # 1. Buy Button
     try:
         buy_btn = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Buy Tickets here']"))
@@ -343,7 +392,6 @@ def _process_hyrox_event_page(site_config, driver):
         print("    ! Could not find 'Buy Tickets here' button.")
         return {"change_detected": False}
 
-    # 2. Athlete Link & Object
     try:
         time.sleep(1) 
         athlete_link = WebDriverWait(driver, 5).until(
@@ -359,7 +407,6 @@ def _process_hyrox_event_page(site_config, driver):
             raw_url = obj.get_attribute("data")
             checkout_url = clean_checkout_url(raw_url)
         except TimeoutException:
-            # Fallback for generic objects
             objs = driver.find_elements(By.TAG_NAME, "object")
             for o in objs:
                 if "checkout" in (o.get_attribute("data") or ""):
@@ -373,9 +420,8 @@ def _process_hyrox_event_page(site_config, driver):
         print("  ! Failed to extract checkout URL.")
         return {"change_detected": False}
 
-# --- PROCESSOR 2: INDIA (Direct Link/Redirect/Overlay) ---
+# --- PROCESSOR 2: INDIA ---
 def _process_hyrox_event_page_india(site_config, driver):
-    """Special Logic for Bengaluru/India (Direct or Overlay)"""
     print(f"  > [India Flow] Loading event page...")
     driver.get(site_config['url'])
     handle_cookies(driver)
@@ -383,9 +429,6 @@ def _process_hyrox_event_page_india(site_config, driver):
     checkout_url = None
     
     try:
-        # print(f"    [Debug] Page Title: {driver.title}")
-        
-        # 1. Find CTA Button
         keywords = ["buy ticket", "register", "get ticket", "book now", "tickets"]
         target = None
         for kw in keywords:
@@ -395,18 +438,14 @@ def _process_hyrox_event_page_india(site_config, driver):
             for el in elements:
                 if el.is_displayed():
                     target = el
-                    # print(f"    [Debug] Found CTA: {el.text.strip().replace(chr(10), ' ')}")
                     break
         
         if target:
-            # 2. Check if Direct Link
             if target.tag_name == 'a':
                 href = target.get_attribute('href')
                 if href and ("checkout" in href or "vivenu" in href):
                     checkout_url = clean_checkout_url(href)
-                    # print(f"    [Debug] Found direct href.")
             
-            # 3. Click and Check (Redirect or Overlay)
             if not checkout_url:
                 current_url = driver.current_url
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", target)
@@ -416,26 +455,19 @@ def _process_hyrox_event_page_india(site_config, driver):
                 
                 time.sleep(3) 
                 
-                # Check for Redirect
                 if driver.current_url != current_url and ("checkout" in driver.current_url or "vivenu" in driver.current_url):
-                    # print("    [Debug] Page redirected.")
                     checkout_url = clean_checkout_url(driver.current_url)
                 
-                # Check for New Tab
                 if not checkout_url and len(driver.window_handles) > 1:
                     driver.switch_to.window(driver.window_handles[-1])
                     if "checkout" in driver.current_url or "vivenu" in driver.current_url:
-                        # print("    [Debug] Switched to new tab.")
                         checkout_url = clean_checkout_url(driver.current_url)
 
-                # Check for On-Page Overlay (Object/Iframe)
                 if not checkout_url:
-                    # print("    [Debug] Checking for overlay widget...")
                     objs = driver.find_elements(By.ID, "sellmodal-anchor")
                     if objs:
                         data = objs[0].get_attribute("data")
-                        if data: 
-                            checkout_url = clean_checkout_url(data)
+                        if data: checkout_url = clean_checkout_url(data)
                     
                     if not checkout_url:
                         frames = driver.find_elements(By.TAG_NAME, "iframe")
@@ -582,13 +614,22 @@ def main(headless=True):
         with open(TICKET_DETAILS_CONFIG, 'r') as f: sites = json.load(f)["sites"]
         
         for s in sites:
-            res = process_ticket_details_site(s, driver)
-            if res.get("change_detected"):
-                change = True
-                if mail_user and mail_pass and res['site_config'].get("email_to"):
-                    send_email(f"[{s['name']}] Status Change", 
-                               f"<pre>{json.dumps(res['current_status'], indent=2)}</pre>",
-                               res['site_config']['email_to'], mail_user, mail_pass)
+            try:
+                res = process_ticket_details_site(s, driver)
+                if res.get("change_detected"):
+                    change = True
+                    if mail_user and mail_pass and res['site_config'].get("email_to"):
+                        # Use the new HTML generator
+                        html_body = generate_diff_html(
+                            res['site_config'], 
+                            res['previous_status'], 
+                            res['current_status']
+                        )
+                        subject = f"[{s['name']}] Status Change Detected"
+                        
+                        send_email(subject, html_body, res['site_config']['email_to'], mail_user, mail_pass)
+            except Exception as e:
+                print(f"Error processing {s['name']}: {e}")
                 
     except Exception as e: print(f"Fatal Error: {e}")
     finally:
