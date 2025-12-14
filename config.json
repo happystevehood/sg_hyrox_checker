@@ -2,14 +2,6 @@
   "matrix_email_to": "happychildhood@yahoo.com",
   "sites": [
     {
-      "name": "Melbourne Dec '25",
-      "site_type": "hyrox_event_page",
-      "url": "https://hyrox.com/event/hyrox-melbourne/",
-      "status_file": "melb_dec_25_status.json",
-      "email_to": "happychildhood@yahoo.com",
-      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
-    },
-    {
       "name": "Shenzen Dec '25",
       "site_type": "hyrox_event_page",
       "url": "https://hyrox.com/event/hyrox-shenzhen/",
