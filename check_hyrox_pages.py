@@ -80,23 +80,30 @@ def clean_checkout_url(url):
     except:
         return url
 
-# --- HTML DIFF GENERATOR ---
+# --- HTML GENERATOR (UPDATED: Full List) ---
 def generate_diff_html(site_config, prev_status, curr_status):
+    """
+    Generates an HTML table listing ALL tickets.
+    Rows that changed status are highlighted.
+    """
     url = site_config['url']
     name = site_config['name']
     
     prev_list = prev_status.get("General", {}).get("details", [])
     curr_list = curr_status.get("General", {}).get("details", [])
     
+    # Map Name -> Status
     prev_map = {t['name']: t['status'] for t in prev_list}
     curr_map = {t['name']: t['status'] for t in curr_list}
     
+    # Get all unique ticket names from both lists sorted
     all_ticket_names = sorted(list(set(prev_map.keys()) | set(curr_map.keys())))
     
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif;">
-        <h3>Status Change for <a href="{url}" target="_blank" rel="nofollow noopener noreferrer">{name}</a></h3>
+        <h3>Status Update for <a href="{url}" target="_blank" rel="nofollow noopener noreferrer">{name}</a></h3>
+        <p>The following tickets have been detected:</p>
         <table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">
             <tr style="background-color: #f2f2f2; text-align: left;">
                 <th>Ticket Name</th>
@@ -113,28 +120,36 @@ def generate_diff_html(site_config, prev_status, curr_status):
         if t_name in curr_map:
             c_status = curr_map[t_name]
         else:
-            # Missing in current means removed/sold out
+            # If missing in current but was in prev, it's removed/sold out
             c_status = "Sold out"
             
+        # Determine Styles
+        row_style = ""
+        status_style = ""
+        
         if c_status != p_status:
             changes_found = True
-            row_style = "background-color: #fff3cd;" # Default yellow
-            status_style = ""
-            
+            # Highlighting for changes
             if c_status.lower() == "available":
                 row_style = "background-color: #d4edda;" # Green
                 status_style = "color: #155724; font-weight: bold;"
             elif c_status.lower() == "sold out":
                 row_style = "background-color: #f8d7da;" # Red
                 status_style = "color: #721c24; font-weight: bold;"
-                
-            html += f"""
-            <tr style="{row_style}">
-                <td>{t_name}</td>
-                <td style="{status_style}">{c_status}</td>
-                <td style="color: #666;">{p_status}</td>
-            </tr>
-            """
+            else:
+                row_style = "background-color: #fff3cd;" # Yellow
+        else:
+            # Neutral style for unchanged items
+            if c_status.lower() == "sold out":
+                 status_style = "color: #999;" # Dimmed text for existing sold out
+            
+        html += f"""
+        <tr style="{row_style}">
+            <td>{t_name}</td>
+            <td style="{status_style}">{c_status}</td>
+            <td style="color: #666;">{p_status}</td>
+        </tr>
+        """
             
     html += """
         </table>
@@ -144,6 +159,7 @@ def generate_diff_html(site_config, prev_status, curr_status):
     </html>
     """.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     
+    # Return HTML only if there was at least one change to warrant an email
     return html if changes_found else None
 
 # --- COOKIE HANDLING ---
@@ -208,7 +224,6 @@ def scrape_current_view(driver, exclude_prefixes):
     tickets = []
     rows = driver.find_elements(By.CLASS_NAME, "ticket-type")
     
-    # Wait for buttons if rows exist
     if rows:
         try:
             WebDriverWait(driver, 5).until(
@@ -294,18 +309,15 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
         
         target = None
         
-        # Helper match function
         def is_match(element):
             return clean_opt_text == normalize_text(element.text) and element.is_displayed()
 
-        # Re-find Buttons
         fresh_btns = driver.find_elements(By.CLASS_NAME, "card-list-item")
         for b in fresh_btns:
             if is_match(b):
                 target = b
                 break
         
-        # Re-find Links
         if not target:
             fresh_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
             for l in fresh_links:
@@ -313,7 +325,6 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
                     target = l
                     break
         
-        # Fallback partial match
         if not target:
              fresh_links = driver.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
              for l in fresh_links:
@@ -349,9 +360,6 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
                       d.find_elements(By.CLASS_NAME, "ticket-type") or
                       d.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]")
         )
-        # Content found -> We consider the scrape "Found" even if result is empty tickets
-        # (meaning all categories are skipped/sold out)
-        is_page_valid = True
     except TimeoutException:
         print("  ! Checkout page did not load content.")
         safe_name = site_config['name'].replace(' ', '_').replace("'", "")
@@ -360,15 +368,16 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
 
     all_tickets = traverse_menu(driver, site_config.get("exclude_prefixes", []))
     
-    # Allow empty list if page was valid (implies everything excluded/sold out)
-    current_status = {"General": {"found": is_page_valid, "details": []}}
+    # We mark "found" as True if we successfully reached the scraping stage,
+    # even if all_tickets is empty (e.g. all sold out/excluded)
+    current_status = {"General": {"found": True, "details": []}}
     
     if all_tickets:
         unique = {t['name']:t for t in all_tickets}.values()
         current_status["General"]["details"] = sorted(list(unique), key=lambda x: x['name'])
         print(f"  > Success! Found {len(current_status['General']['details'])} unique tickets.")
     else:
-        print("  > No matching tickets found (All categories excluded or Sold Out).")
+        print("  > No tickets found (All sold out or excluded).")
 
     status_file = site_config['status_file']
     try:
@@ -377,6 +386,8 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
 
     if previous_status != current_status and current_status["General"]["found"]:
         html_body = generate_diff_html(site_config, previous_status, current_status)
+        
+        # Only if html_body is returned (meaning at least one status change occurred)
         if html_body:
             print(f"  > CHANGE DETECTED!")
             with open(status_file, 'w', encoding='utf-8') as f: 
@@ -387,12 +398,8 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
                 "html_body": html_body
             }
         else:
-            # Even if HTML body is empty (e.g. only status string change?), we should update file
-            # But generate_diff_html returns None if no key diffs. 
-            # If we are here, dictionaries are different. 
-            # It's safer to update the file to keep sync.
-            print("  > Metadata change detected (updating file).")
-            with open(status_file, 'w', encoding='utf-8') as f: 
+             # Sync file if there was a structure change but no status change
+             with open(status_file, 'w', encoding='utf-8') as f: 
                 json.dump(current_status, f, indent=2, ensure_ascii=False)
     
     return {"change_detected": False}
@@ -448,7 +455,6 @@ def _process_hyrox_event_page_india(site_config, driver):
     handle_cookies(driver)
     
     checkout_url = None
-    
     try:
         keywords = ["buy ticket", "register", "get ticket", "book now", "tickets"]
         target = None
@@ -473,7 +479,6 @@ def _process_hyrox_event_page_india(site_config, driver):
                 time.sleep(0.5)
                 try: target.click()
                 except: driver.execute_script("arguments[0].click();", target)
-                
                 time.sleep(3) 
                 
                 if driver.current_url != current_url and ("checkout" in driver.current_url or "vivenu" in driver.current_url):
@@ -523,7 +528,7 @@ def process_ticket_details_site(site_config, driver):
         print(f"  ! Unexpected error: {e}")
         return {"change_detected": False}
 
-# --- MATRIX ---
+# --- MATRIX GENERATION ---
 def generate_availability_matrix():
     print("Generating matrix...")
     DISPLAY_CATEGORIES = [
