@@ -96,7 +96,7 @@ def generate_diff_html(site_config, prev_status, curr_status):
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif;">
-        <h3>Status Change for <a href="{url}" target="_blank" rel="nofollow noopener noreferrer">{name}</a></h3>
+        <h3>Status Update for <a href="{url}" target="_blank" rel="nofollow noopener noreferrer">{name}</a></h3>
         <p>The following tickets have been detected:</p>
         <table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">
             <tr style="background-color: #f2f2f2; text-align: left;">
@@ -122,13 +122,13 @@ def generate_diff_html(site_config, prev_status, curr_status):
         if c_status != p_status:
             changes_found = True
             if c_status.lower() == "available":
-                row_style = "background-color: #d4edda;" # Green
+                row_style = "background-color: #d4edda;"
                 status_style = "color: #155724; font-weight: bold;"
             elif c_status.lower() == "sold out":
-                row_style = "background-color: #f8d7da;" # Red
+                row_style = "background-color: #f8d7da;"
                 status_style = "color: #721c24; font-weight: bold;"
             else:
-                row_style = "background-color: #fff3cd;" # Yellow
+                row_style = "background-color: #fff3cd;"
         else:
             if c_status.lower() == "sold out":
                  status_style = "color: #999;"
@@ -248,7 +248,6 @@ def scrape_current_view(driver, exclude_prefixes):
 def traverse_menu(driver, exclude_prefixes, depth=0):
     found_tickets = []
     
-    # Wait for content (Menu or Tickets)
     try:
         WebDriverWait(driver, 5).until(
             lambda d: d.find_elements(By.CLASS_NAME, "card-list-item") or 
@@ -257,13 +256,11 @@ def traverse_menu(driver, exclude_prefixes, depth=0):
         )
     except TimeoutException: pass
 
-    # 1. Leaf Node Check
     tickets_here = scrape_current_view(driver, exclude_prefixes)
     if tickets_here:
         print(f"    [Depth {depth}] Found {len(tickets_here)} tickets.")
         return tickets_here
 
-    # 2. Find Options
     options = []
     buttons = driver.find_elements(By.CLASS_NAME, "card-list-item")
     if buttons:
@@ -346,12 +343,11 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
     is_page_valid = False
     
     try:
-        # Wait for EITHER standard menu content OR the "Sale has ended" fallback
         WebDriverWait(driver, 15).until(
             lambda d: d.find_elements(By.CLASS_NAME, "card-list-item") or 
                       d.find_elements(By.CLASS_NAME, "ticket-type") or
                       d.find_elements(By.XPATH, "//a[contains(@class, 'vi-rounded-lg')]") or
-                      d.find_elements(By.CLASS_NAME, "fallback-box") # The "Sale Ended" container
+                      d.find_elements(By.CLASS_NAME, "fallback-box")
         )
         is_page_valid = True
     except TimeoutException:
@@ -362,17 +358,31 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
 
     all_tickets = []
     
-    # Check for "Sale has ended" condition explicitly
-    sale_ended_elements = driver.find_elements(By.CLASS_NAME, "fallback-box")
-    sale_ended_text = "sale has ended" in driver.page_source.lower()
+    # --- STRICT CHECK FOR SALE ENDED ---
+    # We check if the specific "Sale has ended" text is visibly displayed inside the fallback box
+    sale_ended_flag = False
     
-    if sale_ended_elements or sale_ended_text:
+    try:
+        # Check 1: Is there a fallback box?
+        fallback_boxes = driver.find_elements(By.CLASS_NAME, "fallback-box")
+        for box in fallback_boxes:
+            if box.is_displayed():
+                # Check 2: Does it contain the text?
+                if "sale has ended" in box.text.lower():
+                    sale_ended_flag = True
+                    print(f"    [Debug] Found visual indicator: '{box.text.replace(chr(10), ' ')}'")
+                    break
+    except Exception as e:
+        print(f"    [Debug] Error checking fallback box: {e}")
+
+    if sale_ended_flag:
         print("  > Detected 'Sale has ended'. Marking all tickets as Sold Out.")
-        # all_tickets remains [] which is correct for full sold out
+        # all_tickets remains []
     else:
-        # Proceed with normal crawling
+        # Proceed with crawling
         all_tickets = traverse_menu(driver, site_config.get("exclude_prefixes", []))
 
+    # Allow empty list if page was valid (implies everything excluded/sold out)
     current_status = {"General": {"found": is_page_valid, "details": []}}
     
     if all_tickets:
@@ -380,7 +390,8 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
         current_status["General"]["details"] = sorted(list(unique), key=lambda x: x['name'])
         print(f"  > Success! Found {len(current_status['General']['details'])} unique tickets.")
     else:
-        print("  > Result: No tickets available (Empty list).")
+        if not sale_ended_flag:
+            print("  > No tickets found (All categories excluded).")
 
     status_file = site_config['status_file']
     try:
@@ -389,7 +400,6 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
 
     if previous_status != current_status and current_status["General"]["found"]:
         html_body = generate_diff_html(site_config, previous_status, current_status)
-        
         if html_body:
             print(f"  > CHANGE DETECTED!")
             with open(status_file, 'w', encoding='utf-8') as f: 
@@ -406,7 +416,7 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
     
     return {"change_detected": False}
 
-# --- PROCESSOR 1: STANDARD ---
+# --- PROCESSORS ---
 def _process_hyrox_event_page(site_config, driver):
     print(f"  > [Standard Flow] Loading event page...")
     driver.get(site_config['url'])
@@ -450,14 +460,11 @@ def _process_hyrox_event_page(site_config, driver):
         print("  ! Failed to extract checkout URL.")
         return {"change_detected": False}
 
-# --- PROCESSOR 2: INDIA ---
 def _process_hyrox_event_page_india(site_config, driver):
     print(f"  > [India Flow] Loading event page...")
     driver.get(site_config['url'])
     handle_cookies(driver)
-    
     checkout_url = None
-    
     try:
         keywords = ["buy ticket", "register", "get ticket", "book now", "tickets"]
         target = None
@@ -482,7 +489,6 @@ def _process_hyrox_event_page_india(site_config, driver):
                 time.sleep(0.5)
                 try: target.click()
                 except: driver.execute_script("arguments[0].click();", target)
-                
                 time.sleep(3) 
                 
                 if driver.current_url != current_url and ("checkout" in driver.current_url or "vivenu" in driver.current_url):
@@ -532,7 +538,7 @@ def process_ticket_details_site(site_config, driver):
         print(f"  ! Unexpected error: {e}")
         return {"change_detected": False}
 
-# --- MATRIX GENERATION ---
+# --- MATRIX ---
 def generate_availability_matrix():
     print("Generating matrix...")
     DISPLAY_CATEGORIES = [
