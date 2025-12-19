@@ -15,8 +15,16 @@
         "status": "Sold out"
       },
       {
+        "name": "HYROX DOUBLES WOMEN | SUNDAY",
+        "status": "Available"
+      },
+      {
         "name": "HYROX MEN | FRIDAY",
         "status": "Sold out"
+      },
+      {
+        "name": "HYROX MEN | SUNDAY",
+        "status": "Available"
       },
       {
         "name": "HYROX MENS RELAY | SATURDAY",
