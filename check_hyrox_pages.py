@@ -110,7 +110,6 @@ def generate_diff_html(site_config, prev_status, curr_status):
     
     for t_name in all_ticket_names:
         p_status = prev_map.get(t_name, "N/A")
-        
         if t_name in curr_map:
             c_status = curr_map[t_name]
         else:
@@ -357,32 +356,21 @@ def execute_checkout_scraping(driver, checkout_url, site_config):
         return {"change_detected": False}
 
     all_tickets = []
-    
-    # --- STRICT CHECK FOR SALE ENDED ---
-    # We check if the specific "Sale has ended" text is visibly displayed inside the fallback box
+    sale_ended_elements = driver.find_elements(By.CLASS_NAME, "fallback-box")
+    sale_ended_text = "sale has ended" in driver.page_source.lower()
     sale_ended_flag = False
-    
-    try:
-        # Check 1: Is there a fallback box?
-        fallback_boxes = driver.find_elements(By.CLASS_NAME, "fallback-box")
-        for box in fallback_boxes:
-            if box.is_displayed():
-                # Check 2: Does it contain the text?
-                if "sale has ended" in box.text.lower():
-                    sale_ended_flag = True
-                    print(f"    [Debug] Found visual indicator: '{box.text.replace(chr(10), ' ')}'")
-                    break
-    except Exception as e:
-        print(f"    [Debug] Error checking fallback box: {e}")
+
+    if sale_ended_elements:
+         for box in sale_ended_elements:
+             if box.is_displayed() and "sale has ended" in box.text.lower():
+                 sale_ended_flag = True
+                 break
 
     if sale_ended_flag:
         print("  > Detected 'Sale has ended'. Marking all tickets as Sold Out.")
-        # all_tickets remains []
     else:
-        # Proceed with crawling
         all_tickets = traverse_menu(driver, site_config.get("exclude_prefixes", []))
 
-    # Allow empty list if page was valid (implies everything excluded/sold out)
     current_status = {"General": {"found": is_page_valid, "details": []}}
     
     if all_tickets:
@@ -520,6 +508,27 @@ def _process_hyrox_event_page_india(site_config, driver):
         print("  ! Failed to extract India checkout URL.")
         return {"change_detected": False}
 
+# --- ON SALE CHECKER (RESTORED) ---
+def process_on_sale_site(site_config, driver):
+    name = site_config['name']
+    url = site_config['url']
+    if site_config.get('on_sale'): return {"change_detected": False}
+    
+    print(f"\n--- Checking On Sale: {name} ---")
+    driver.get(url)
+    handle_cookies(driver)
+    
+    try:
+        src = driver.page_source.lower()
+        # Simple check for keywords
+        if "buy tickets" in src or "register now" in src or "get tickets" in src:
+            print("  > ON SALE DETECTED!")
+            site_config['on_sale'] = True
+            return {"change_detected": True, "site_config": site_config}
+    except: pass
+    
+    return {"change_detected": False}
+
 # --- MAIN ROUTER ---
 def process_ticket_details_site(site_config, driver):
     name = site_config['name']
@@ -538,7 +547,7 @@ def process_ticket_details_site(site_config, driver):
         print(f"  ! Unexpected error: {e}")
         return {"change_detected": False}
 
-# --- MATRIX ---
+# --- MATRIX GENERATION ---
 def generate_availability_matrix():
     print("Generating matrix...")
     DISPLAY_CATEGORIES = [
@@ -643,6 +652,28 @@ def main(headless=True):
     
     driver = setup_driver(headless)
     
+    # 1. Check On Sale (Restored Loop)
+    try:
+        with open(ON_SALE_CONFIG, 'r') as f: on_sale_sites = json.load(f)
+        os_updated = False
+        for s in on_sale_sites:
+            try:
+                res = process_on_sale_site(s, driver)
+                if res.get("change_detected"):
+                    change = True
+                    os_updated = True
+                    if mail_user and mail_pass and res['site_config'].get("email_to"):
+                        subj = f"[{s['name']}] Tickets are ON SALE!"
+                        body = f"<html><body><p>Go to: <a href='{s['url']}'>{s['url']}</a></p></body></html>"
+                        send_email(subj, body, res['site_config']['email_to'], mail_user, mail_pass)
+            except Exception as e: print(f"Error checking OS {s['name']}: {e}")
+        
+        if os_updated:
+            with open(ON_SALE_CONFIG, 'w') as f: json.dump(on_sale_sites, f, indent=2)
+            
+    except: pass
+
+    # 2. Check Detailed Tickets
     try:
         with open(TICKET_DETAILS_CONFIG, 'r') as f: sites = json.load(f)["sites"]
         
@@ -653,7 +684,7 @@ def main(headless=True):
                     change = True
                     if mail_user and mail_pass and res['site_config'].get("email_to"):
                         subject = f"[{s['name']}] Status Change Detected"
-                        html_body = res.get("html_body", "No details available")
+                        html_body = res.get("html_body", "No details")
                         send_email(subject, html_body, res['site_config']['email_to'], mail_user, mail_pass)
             except Exception as e:
                 print(f"Error processing {s['name']}: {e}")
