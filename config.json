@@ -49,7 +49,14 @@
       "email_to": "happychildhood@yahoo.com",
       "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
     },
-
+    {
+      "name": "Brisbane Apr '26",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-brisbane/",
+      "status_file": "brisbane_apr_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
     {
       "name": "Incheon May '26",
       "site_type": "hyrox_event_page",
