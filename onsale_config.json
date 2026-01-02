@@ -54,6 +54,12 @@
     "email_to": "happychildhood@yahoo.com"
   },
   {
+    "name": "SG Apr '26 ",
+    "on_sale": false,
+    "url": "https://hyrox.com/event/hyrox-singapore/",
+    "email_to": "happychildhood@yahoo.com"
+  },
+  {
     "name": "APAC Brisbane Apr 26",
     "on_sale": true,
     "url": "https://hyrox.com/event/hyrox-apac-championships-brisbane/",
@@ -83,10 +89,5 @@
     "url": "https://hyrox.com/event/hyrox-incheon/",
     "email_to": "happychildhood@yahoo.com"
   },
-  {
-    "name": "SG TBC '26 ",
-    "on_sale": false,
-    "url": "https://hyrox.com/event/hyrox-singapore/",
-    "email_to": "happychildhood@yahoo.com"
-  }
+
 ]
