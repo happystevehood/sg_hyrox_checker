@@ -55,12 +55,12 @@
   },
   {
     "name": "Beijing Mar '26",
-    "on_sale": true,
+    "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-beijing/",
     "email_to": "happychildhood@yahoo.com"
   },
   {
-    "name": "SG Apr '26 ",
+    "name": "Singapore Apr '26 ",
     "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-singapore/",
     "email_to": "happychildhood@yahoo.com"
@@ -84,7 +84,7 @@
     "email_to": "happychildhood@yahoo.com"
   },
   {
-    "name": "HK May '26",
+    "name": "Hong Kong May '26",
     "on_sale": false,
     "url": "https://hyrox.com/event/hyrox-hong-kong2026/",
     "email_to": "happychildhood@yahoo.com, abrahimlailymarlisa@gmail.com"
@@ -94,5 +94,11 @@
     "on_sale": true,
     "url": "https://hyrox.com/event/hyrox-incheon/",
     "email_to": "happychildhood@yahoo.com"
+  },
+  {
+    "name": "Indonesia June '26",
+    "on_sale": false,
+    "url": "https://hyrox.com/event/hyrox-indonesia/",
+    "email_to": "happychildhood@yahoo.com, nadiahali95@gmail.com"
   }
 ]

@@ -34,6 +34,22 @@
       "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
     },
     {
+      "name": "Beijing Mar '26",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-beijing/",
+      "status_file": "beijing_mar_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
+    {
+      "name": "Singapore Apr '26 ",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-singapore/",
+      "status_file": "singapore_apr_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
+    {
       "name": "Bengalaru Apr '26",
       "site_type": "hyrox_event_page_india",
       "url": "https://india.hyrox.co.in/event/hyrox-bengaluru-season-25-26-uivi1l",
@@ -63,6 +79,22 @@
       "url": "https://hyrox.com/event/hyrox-incheon/",
       "status_file": "incheon_may_26_status.json",
       "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
+    {
+      "name": "Hong Kong May '26",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-hong-kong2026/",
+      "status_file": "hk_may_26_status.json",
+      "email_to": "happychildhood@yahoo.com, abrahimlailymarlisa@gmail.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
+    {
+      "name": "Indonesia June '26",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-indonesia/",
+      "status_file": "indonesia_may_26_status.json",
+      "email_to": "happychildhood@yahoo.com, nadiahali95@gmail.com",
       "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
     }
   ]
