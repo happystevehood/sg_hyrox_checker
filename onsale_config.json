@@ -55,7 +55,7 @@
   },
   {
     "name": "Beijing Mar '26",
-    "on_sale": false,
+    "on_sale": true,
     "url": "https://hyrox.com/event/hyrox-beijing/",
     "email_to": "happychildhood@yahoo.com"
   },
