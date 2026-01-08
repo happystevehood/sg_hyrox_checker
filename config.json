@@ -34,6 +34,14 @@
       "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
     },
     {
+      "name": "Beijing Mar '26",
+      "site_type": "hyrox_event_page",
+      "url": "https://hyrox.com/event/hyrox-beijing/",
+      "status_file": "beijing_mar_26_status.json",
+      "email_to": "happychildhood@yahoo.com",
+      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
+    },
+    {
       "name": "Bengalaru Apr '26",
       "site_type": "hyrox_event_page_india",
       "url": "https://india.hyrox.co.in/event/hyrox-bengaluru-season-25-26-uivi1l",
@@ -67,14 +75,7 @@
     }
   ],
   "future_sites": [
-    {
-      "name": "Beijing Mar '26",
-      "site_type": "hyrox_event_page",
-      "url": "https://hyrox.com/event/hyrox-beijing/",
-      "status_file": "beijing_mar_26_status.json",
-      "email_to": "happychildhood@yahoo.com",
-      "exclude_prefixes" : ["CHARITY", "ELITE SPECTATOR", "SPECTATOR", "Spectator", "HYROX ADAPTIVE"]
-    },
+
     {
       "name": "Singapore Apr '26 ",
       "site_type": "hyrox_event_page",
