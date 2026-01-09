@@ -3,16 +3,32 @@
     "found": true,
     "details": [
       {
+        "name": "HYROX DOUBLES MEN | FRIDAY",
+        "status": "Available"
+      },
+      {
         "name": "HYROX DOUBLES MEN | SUNDAY",
         "status": "Sold out"
+      },
+      {
+        "name": "HYROX DOUBLES MIXED | FRIDAY",
+        "status": "Available"
       },
       {
         "name": "HYROX DOUBLES MIXED | SATURDAY",
         "status": "Sold out"
       },
       {
+        "name": "HYROX DOUBLES WOMEN | FRIDAY",
+        "status": "Available"
+      },
+      {
         "name": "HYROX DOUBLES WOMEN | SUNDAY",
         "status": "Sold out"
+      },
+      {
+        "name": "HYROX MEN | FRIDAY",
+        "status": "Available"
       },
       {
         "name": "HYROX MEN | SATURDAY",
@@ -41,6 +57,10 @@
       {
         "name": "HYROX PRO WOMEN | SATURDAY",
         "status": "Sold out"
+      },
+      {
+        "name": "HYROX WOMEN | FRIDAY",
+        "status": "Available"
       },
       {
         "name": "HYROX WOMEN | SUNDAY",
