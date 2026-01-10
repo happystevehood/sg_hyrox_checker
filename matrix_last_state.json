@@ -80,7 +80,7 @@
     "HYROX DOUBLES MIXED": false,
     "HYROX DOUBLES MEN": false,
     "HYROX WOMENS RELAY": true,
-    "HYROX MENS RELAY": true,
+    "HYROX MENS RELAY": false,
     "HYROX MIXED RELAY": false
   },
   "Brisbane APAC Apr '26": {
@@ -92,7 +92,7 @@
     "HYROX PRO DOUBLES MEN": false,
     "HYROX DOUBLES WOMEN": false,
     "HYROX DOUBLES MIXED": false,
-    "HYROX DOUBLES MEN": true,
+    "HYROX DOUBLES MEN": false,
     "HYROX WOMENS RELAY": false,
     "HYROX MENS RELAY": false,
     "HYROX MIXED RELAY": false
